@@ -3,7 +3,6 @@ from features.base import feature_factory
 from map import Map, FeatureStatus, Permission, DatabaseCollectionMap
 from api.linebot_helper import LineBotHelper
 from flask import Flask, request, abort
-from line_notify_app import line_notify_app
 from liff_app import liff_app
 from linebot.v3.exceptions import (
     InvalidSignatureError
@@ -13,8 +12,7 @@ from linebot.v3.webhooks import (
     PostbackEvent,
     FollowEvent,
     UnfollowEvent,
-    TextMessageContent,
-    ImageMessageContent
+    TextMessageContent
 )
 from linebot.v3.messaging import (
     ImageMessage,
@@ -23,7 +21,6 @@ from linebot.v3.messaging import (
 import traceback
 
 app = Flask(__name__)
-app.register_blueprint(line_notify_app, url_prefix='/notify')
 app.register_blueprint(liff_app, url_prefix='/liff')
 
 # 初始化 Config
@@ -31,7 +28,6 @@ config = Config()
 configuration = config.configuration
 line_handler = config.handler
 firebaseService = config.firebaseService
-lineNotifyService = config.lineNotifyService
 
 # domain root
 @app.route('/')
@@ -80,7 +76,12 @@ def handle_follow(event):
     except Exception as e:
         app.logger.error(e)
         error_message = ''.join(traceback.format_exception(None, e, e.__traceback__))
-        lineNotifyService.send_notify_message(config.LINE_NOTIFY_GROUP_TOKEN, f'發生錯誤！\n{error_message}')
+        LineBotHelper.push_message(
+            firebaseService.filter_data(
+                DatabaseCollectionMap.USER, [('permission', '==', Permission.ADMIN)]
+            )[0]['userId'],
+            [TextMessage(text=error_message)]
+        )
         LineBotHelper.reply_message(event, [TextMessage(text='發生錯誤，請聯繫系統管理員！')])
     
 @line_handler.add(UnfollowEvent)
@@ -95,7 +96,12 @@ def handle_unfollow(event):
     except Exception as e:
         app.logger.error(e)
         error_message = ''.join(traceback.format_exception(None, e, e.__traceback__))
-        lineNotifyService.send_notify_message(config.LINE_NOTIFY_GROUP_TOKEN, f'發生錯誤！\n{error_message}')
+        LineBotHelper.push_message(
+            firebaseService.filter_data(
+                DatabaseCollectionMap.USER, [('permission', '==', Permission.ADMIN)]
+            )[0]['userId'],
+            [TextMessage(text=error_message)]
+        )
 
 @line_handler.add(MessageEvent, message=TextMessageContent)
 def handle_message(event):
@@ -140,25 +146,12 @@ def handle_message(event):
     except Exception as e:
         app.logger.error(e)
         error_message = ''.join(traceback.format_exception(None, e, e.__traceback__))
-        lineNotifyService.send_notify_message(config.LINE_NOTIFY_GROUP_TOKEN, f'發生錯誤！\n{error_message}')
-        LineBotHelper.reply_message(event, [TextMessage(text='發生錯誤，請聯繫系統管理員！')])
-
-@line_handler.add(MessageEvent, message=ImageMessageContent)
-def handle_image(event):
-    """
-    Handle圖片訊息事件
-    """
-    try:
-        if LineBotHelper.check_is_fixing():
-            return LineBotHelper.reply_message(event, [TextMessage(text='系統維護中，請稍後再試！')])
-        # 傳送linenotify通知有使用者上傳圖片
-        msg = f'有使用者上傳圖片！\nUser ID: {event.source.user_id}'
-        lineNotifyService.send_notify_message(config.LINE_NOTIFY_GROUP_TOKEN, msg)
-        return LineBotHelper.reply_message(event, [TextMessage(text='圖片上傳成功！')])
-    except Exception as e:
-        app.logger.error(e)
-        error_message = ''.join(traceback.format_exception(None, e, e.__traceback__))
-        lineNotifyService.send_notify_message(config.LINE_NOTIFY_GROUP_TOKEN, f'發生錯誤！\n{error_message}')
+        LineBotHelper.push_message(
+            firebaseService.filter_data(
+                DatabaseCollectionMap.USER, [('permission', '==', Permission.ADMIN)]
+            )[0]['userId'],
+            [TextMessage(text=error_message)]
+        )
         LineBotHelper.reply_message(event, [TextMessage(text='發生錯誤，請聯繫系統管理員！')])
 
 @line_handler.add(PostbackEvent)
@@ -186,7 +179,12 @@ def handle_postback(event):
     except Exception as e:
         app.logger.error(e)
         error_message = ''.join(traceback.format_exception(None, e, e.__traceback__))
-        lineNotifyService.send_notify_message(config.LINE_NOTIFY_GROUP_TOKEN, f'發生錯誤！\n{error_message}')
+        LineBotHelper.push_message(
+            firebaseService.filter_data(
+                DatabaseCollectionMap.USER, [('permission', '==', Permission.ADMIN)]
+            )[0]['userId'],
+            [TextMessage(text=error_message)]
+        )
         LineBotHelper.reply_message(event, [TextMessage(text='發生錯誤，請聯繫系統管理員！')])
 
 doc_watch = firebaseService.on_snapshot("quiz_questions")
