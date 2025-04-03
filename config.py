@@ -10,7 +10,6 @@ import json
 # import pygsheets
 # from api.spreadsheet import SpreadsheetService
 from api.firebase import FireBaseService
-from api.line_notify import LineNotifyService
 from map import FeatureStatus
 
 class Singleton(type):
@@ -33,9 +32,6 @@ class Config(metaclass=Singleton):
         self.CHANNEL_ACCESS_TOKEN = os.getenv('CHANNEL_ACCESS_TOKEN')
         self.SPREADSHEET_URL = os.getenv('SPREADSHEET_URL')
         self.FIREBASE_CREDENTIALS = os.getenv('FIREBASE_CREDENTIALS')
-        self.LINE_NOTIFY_CLIENT_ID = os.getenv('LINE_NOTIFY_CLIENT_ID')
-        self.LINE_NOTIFY_CLIENT_SECRET = os.getenv('LINE_NOTIFY_CLIENT_SECRET')
-        self.LINE_NOTIFY_GROUP_TOKEN = os.getenv('LINE_NOTIFY_GROUP_TOKEN')
         self.GDRIVE_API_CREDENTIALS = os.getenv('GDRIVE_API_CREDENTIALS')
         self.LIFF_ID_COMPACT = os.getenv('LIFF_ID_COMPACT')
         self.LIFF_ID_TALL = os.getenv('LIFF_ID_TALL')
@@ -44,9 +40,8 @@ class Config(metaclass=Singleton):
     def _check_env(self):
         required_vars = [
             'CHANNEL_SECRET', 'CHANNEL_ACCESS_TOKEN', 'GDRIVE_API_CREDENTIALS',
-            'SPREADSHEET_URL', 'FIREBASE_CREDENTIALS', 'LINE_NOTIFY_CLIENT_ID',
-            'LINE_NOTIFY_CLIENT_SECRET', 'LINE_NOTIFY_GROUP_TOKEN',
-            'LIFF_ID_COMPACT', 'LIFF_ID_TALL', 'LIFF_ID_FULL'
+            'SPREADSHEET_URL', 'FIREBASE_CREDENTIALS', 'LIFF_ID_COMPACT',
+            'LIFF_ID_TALL', 'LIFF_ID_FULL'
         ]
         
         missing_vars = [var for var in required_vars if getattr(self, var) is None]
@@ -61,7 +56,6 @@ class Config(metaclass=Singleton):
         self.configuration = Configuration(access_token=self.CHANNEL_ACCESS_TOKEN)
         # self.spreadsheetService = SpreadsheetService(pygsheets.authorize(service_account_env_var='GDRIVE_API_CREDENTIALS'), self.SPREADSHEET_URL)
         self.firebaseService = FireBaseService(json.loads(self.FIREBASE_CREDENTIALS))
-        self.lineNotifyService = LineNotifyService(self.LINE_NOTIFY_CLIENT_ID, self.LINE_NOTIFY_CLIENT_SECRET)
     
     def _feature_init(self):
         self.feature = {
