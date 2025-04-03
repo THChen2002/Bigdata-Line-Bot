@@ -63,7 +63,12 @@ def userinfo_post():
         return jsonify({'success': True, 'message': '設定成功'})
     except Exception as e:
         error_message = ''.join(traceback.format_exception(None, e, e.__traceback__))
-        LineBotHelper.push_message(config.LINE_GROUP_ID, [TextMessage(text=error_message)])
+        LineBotHelper.push_message(
+            firebaseService.filter_data(
+                DatabaseCollectionMap.USER, [('permission', '==', 4)]
+            ),
+            [TextMessage(text=error_message)]
+        )
         return jsonify({'success': False, 'message': "發生錯誤，請聯繫系統管理員"})
 # ----------------使用者詳細資料 End----------------
 

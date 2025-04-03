@@ -76,7 +76,12 @@ def handle_follow(event):
     except Exception as e:
         app.logger.error(e)
         error_message = ''.join(traceback.format_exception(None, e, e.__traceback__))
-        LineBotHelper.push_message(config.LINE_GROUP_ID, [TextMessage(text=error_message)])
+        LineBotHelper.push_message(
+            firebaseService.filter_data(
+                DatabaseCollectionMap.USER, [('permission', '==', 4)]
+            ),
+            [TextMessage(text=error_message)]
+        )
         LineBotHelper.reply_message(event, [TextMessage(text='發生錯誤，請聯繫系統管理員！')])
     
 @line_handler.add(UnfollowEvent)
@@ -91,7 +96,12 @@ def handle_unfollow(event):
     except Exception as e:
         app.logger.error(e)
         error_message = ''.join(traceback.format_exception(None, e, e.__traceback__))
-        LineBotHelper.push_message(config.LINE_GROUP_ID, [TextMessage(text=error_message)])
+        LineBotHelper.push_message(
+            firebaseService.filter_data(
+                DatabaseCollectionMap.USER, [('permission', '==', 4)]
+            ),
+            [TextMessage(text=error_message)]
+        )
 
 @line_handler.add(MessageEvent, message=TextMessageContent)
 def handle_message(event):
@@ -136,7 +146,12 @@ def handle_message(event):
     except Exception as e:
         app.logger.error(e)
         error_message = ''.join(traceback.format_exception(None, e, e.__traceback__))
-        LineBotHelper.push_message(config.LINE_GROUP_ID, [TextMessage(text=error_message)])
+        LineBotHelper.push_message(
+            firebaseService.filter_data(
+                DatabaseCollectionMap.USER, [('permission', '==', 4)]
+            ),
+            [TextMessage(text=error_message)]
+        )
         LineBotHelper.reply_message(event, [TextMessage(text='發生錯誤，請聯繫系統管理員！')])
 
 @line_handler.add(PostbackEvent)
@@ -164,7 +179,12 @@ def handle_postback(event):
     except Exception as e:
         app.logger.error(e)
         error_message = ''.join(traceback.format_exception(None, e, e.__traceback__))
-        LineBotHelper.push_message(config.LINE_GROUP_ID, [TextMessage(text=error_message)])
+        LineBotHelper.push_message(
+            firebaseService.filter_data(
+                DatabaseCollectionMap.USER, [('permission', '==', 4)]
+            ),
+            [TextMessage(text=error_message)]
+        )
         LineBotHelper.reply_message(event, [TextMessage(text='發生錯誤，請聯繫系統管理員！')])
 
 doc_watch = firebaseService.on_snapshot("quiz_questions")

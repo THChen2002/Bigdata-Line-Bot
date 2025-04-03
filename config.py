@@ -36,13 +36,12 @@ class Config(metaclass=Singleton):
         self.LIFF_ID_COMPACT = os.getenv('LIFF_ID_COMPACT')
         self.LIFF_ID_TALL = os.getenv('LIFF_ID_TALL')
         self.LIFF_ID_FULL = os.getenv('LIFF_ID_FULL')
-        self.LINE_GROUP_ID = os.getenv('LINE_GROUP_ID')
 
     def _check_env(self):
         required_vars = [
             'CHANNEL_SECRET', 'CHANNEL_ACCESS_TOKEN', 'GDRIVE_API_CREDENTIALS',
             'SPREADSHEET_URL', 'FIREBASE_CREDENTIALS', 'LIFF_ID_COMPACT',
-            'LIFF_ID_TALL', 'LIFF_ID_FULL', 'LINE_GROUP_ID'
+            'LIFF_ID_TALL', 'LIFF_ID_FULL'
         ]
         
         missing_vars = [var for var in required_vars if getattr(self, var) is None]
