@@ -65,8 +65,8 @@ def userinfo_post():
         error_message = ''.join(traceback.format_exception(None, e, e.__traceback__))
         LineBotHelper.push_message(
             firebaseService.filter_data(
-                DatabaseCollectionMap.USER, [('permission', '==', 4)]
-            ),
+                DatabaseCollectionMap.USER, [('permission', '==', Permission.ADMIN)]
+            )[0]['userId'],
             [TextMessage(text=error_message)]
         )
         return jsonify({'success': False, 'message': "發生錯誤，請聯繫系統管理員"})
