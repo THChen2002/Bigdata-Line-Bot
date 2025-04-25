@@ -231,14 +231,22 @@ class RichMenuHelper:
             ).get('image_url')
             __class__.set_rich_menu_image_(rich_menu_id, rich_menu_url)
             __class__.create_rich_menu_alias_(alias_id, rich_menu_id)
+            return rich_menu_id
 
 #-----------------以下為設定rich menu的程式-----------------
 # 設定rich menu，並將alias id為page1的rich menu設為預設
-# RichMenuHelper.create_rich_menu_('page1')
-# RichMenuHelper.create_rich_menu_('page2')
 # with ApiClient(configuration) as api_client:
 #     line_bot_api = MessagingApi(api_client)
-#     line_bot_api.set_default_rich_menu(line_bot_api.get_rich_menu_alias('page1').rich_menu_id)
+#     richmenus = firebaseService.get_collection_data(DatabaseCollectionMap.RICH_MENU)
+#     for richmenu in richmenus:
+#         richmenu_id = RichMenuHelper.create_rich_menu_(richmenu.get('alias_id'))
+#         firebaseService.update_data(
+#             DatabaseCollectionMap.RICH_MENU,
+#             richmenu.get('alias_id'),
+#             {'richmenu_id': richmenu_id}
+#         )
+#         if richmenu.get('alias_id') == 'page1':
+#             line_bot_api.set_default_rich_menu(richmenu_id)
 
 #-------------------刪除所有rich menu的程式-------------------
 # with ApiClient(configuration) as api_client:
