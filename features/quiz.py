@@ -4,7 +4,7 @@ from linebot.v3.messaging import (
     FlexMessage,
     FlexContainer
 )
-from map import DatabaseCollectionMap, LIFFSize
+from map import DatabaseCollectionMap, LIFF
 from api.linebot_helper import LineBotHelper, FlexMessageHelper
 import pandas as pd
 import json
@@ -114,7 +114,7 @@ class Quiz(Feature):
                     DatabaseCollectionMap.LINE_FLEX,
                     "quiz"
                 ).get('competition_rule')
-                userinfo_url = f'https://liff.line.me/{LIFFSize.TALL.value}/userinfo?userId={user_id}'
+                userinfo_url = f'https://liff.line.me/{LIFF.TALL.value}/userinfo?userId={user_id}'
                 line_flex_json = LineBotHelper.replace_variable(line_flex_str, {'category': category, 'competition_id': competition_id, 'userinfo_url': userinfo_url})
                 return LineBotHelper.reply_message(event, [FlexMessage(alt_text='測驗說明', contents=FlexContainer.from_json(line_flex_json))])
             if category:

@@ -4,7 +4,7 @@ from linebot.v3.messaging import (
     FlexMessage,
     FlexContainer
 )
-from map import DatabaseCollectionMap, EquipmentStatus, LIFFSize
+from map import DatabaseCollectionMap, EquipmentStatus, LIFF
 from api.linebot_helper import LineBotHelper, FlexMessageHelper
 import json
 
@@ -18,7 +18,7 @@ class Equipment(Feature):
             DatabaseCollectionMap.LINE_FLEX,
             "equipment"
         ).get("select")
-        rent_url = f'https://liff.line.me/{LIFFSize.TALL.value}/rent?userId={event.source.user_id}'
+        rent_url = f'https://liff.line.me/{LIFF.TALL.value}/rent?userId={event.source.user_id}'
         line_flex_str = LineBotHelper.replace_variable(line_flex_str, {'rent_url': rent_url})
         return LineBotHelper.reply_message(event, [FlexMessage(alt_text='設備租借', contents=FlexContainer.from_json(line_flex_str))])
 

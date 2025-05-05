@@ -53,9 +53,9 @@ class Permission(IntEnum):
     # 管理員
     ADMIN = 4
 
-class LIFFSize(Enum):
+class LIFF(Enum):
     """
-    LIFF尺寸
+    LIFF
     """
     # Compact
     COMPACT = os.getenv('LIFF_ID_COMPACT')
@@ -63,6 +63,8 @@ class LIFFSize(Enum):
     TALL = os.getenv('LIFF_ID_TALL')
     # Full
     FULL = os.getenv('LIFF_ID_FULL')
+    # Admin
+    ADMIN = os.getenv('LIFF_ID_ADMIN')
 
 class Map:
     """
