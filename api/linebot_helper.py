@@ -17,7 +17,13 @@ from linebot.v3.messaging import (
     QuickReply,
     QuickReplyItem,
     ShowLoadingAnimationRequest,
-    ValidateMessageRequest
+    ValidateMessageRequest,
+    RichMenuBulkLinkRequest,
+    RichMenuBulkUnlinkRequest,
+    RichMenuBatchRequest,
+    RichMenuBatchLinkOperation,
+    RichMenuBatchUnlinkOperation,
+    RichMenuBatchUnlinkAllOperation
 )
 import requests
 import random
@@ -255,6 +261,56 @@ class RichMenuHelper:
 #     for richmenu in richmenu_list.richmenus:
 #         richmenu_id = richmenu.rich_menu_id
 #         line_bot_api.delete_rich_menu(richmenu_id)
+
+#-----------------根據YT會員等級設定rich menu-----------------
+# with ApiClient(configuration) as api_client:
+#     line_bot_api = MessagingApi(api_client)
+#     for level in range(1, 4):
+#         user_ids = [
+#             user.get('userId') for user in firebaseService.filter_data(
+#                 DatabaseCollectionMap.USER,
+#                 [('youtube.level', '==', level)]
+#             )
+#         ]
+#         rich_menu_id = firebaseService.get_data(
+#             DatabaseCollectionMap.RICH_MENU,
+#             f'page1_level{level}'
+#         ).get('richmenu_id')
+
+#         # 連結圖文選單到使用者
+#         line_bot_api.link_rich_menu_id_to_users(
+#             RichMenuBulkLinkRequest(
+#                 rich_menu_id=rich_menu_id,
+#                 user_ids=user_ids
+#             )
+#         )
+
+#         # 取消圖文選單連結使用者
+#         line_bot_api.unlink_rich_menu_id_from_user("Uxxxxxxx")
+#         line_bot_api.unlink_rich_menu_id_from_users(
+#             RichMenuBulkUnlinkRequest(
+#                 user_ids=user_ids
+#             )
+#         )
+
+#         # 取得使用者的圖文選單ID
+#         rich_menu_id = line_bot_api.get_rich_menu_id_of_user("Uxxxxxxx")
+
+#         # 批次替換或取消連結圖文選單
+#         line_bot_api.rich_menu_batch(
+#             RichMenuBatchRequest(
+#                 operations=[
+#                     RichMenuBatchLinkOperation(
+#                         var_from="richmenu-xxxxxxx", # 從哪個圖文選單ID
+#                         to="richmenu-xxxxxxxx" # 到哪個圖文選單ID
+#                     ),
+#                     RichMenuBatchUnlinkOperation(
+#                         var_from="richmenu-xxxxxxx", # 從哪個圖文選單ID
+#                     ),
+#                     RichMenuBatchUnlinkAllOperation(),
+#                 ]
+#             )
+#         )
     
 class QuickReplyHelper:
     @staticmethod
