@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Unauthorized{% endblock %}
+{% block content %}
+<div class="container text-center mt-5" style="color: #555; font-family: 'Verdana', sans-serif; padding: 20px; max-width: 600px;">
+    <!-- 使用 Lottie 動畫，居中對齊 -->
+    <script src="https://unpkg.com/@dotlottie/player-component@2.7.12/dist/dotlottie-player.mjs" type="module"></script>
+    <div style="display: flex; justify-content: center; margin-bottom: 20px;">
+        <dotlottie-player 
+            src="https://lottie.host/eb222637-b5ed-435a-b386-74e4b0c14010/EdZ7FxZ8yZ.lottie" 
+            background="transparent" 
+            speed="1" 
+            style="width: 300px; height: 300px;" 
+            loop 
+            autoplay>
+        </dotlottie-player>
+    </div>
+    <h2 class="mb-4" style="font-family:微軟正黑體; font-weight: bold;">您的權限不足</h2>
+</div>
+{% endblock %} 

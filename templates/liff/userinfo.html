@@ -148,6 +148,25 @@
                 </div>
             </div>
         </div>
+
+        <!-- YT訂閱資料區塊 -->
+        <h4 class="border-bottom pb-2">四、YT訂閱帳號與會員等級</h4>
+        <div id="ytSubscriptionFields">
+            <div class="row g-3 mb-4">
+                <div class="col-md-6">
+                    <label for="ytChannel" class="form-label">YT頻道名稱</label>
+                    <input type="text" id="ytChannel" class="form-control">
+                    <div class="invalid-feedback">
+                        YT頻道名稱必填
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <label for="ytLevel" class="form-label">YT會員等級(若此會員等級與您現在的YT帳號會員等級不符可以在聊天室上傳截圖)</label>
+                    <select id="ytLevel" class="form-select" disabled>
+                    </select>
+                </div>
+            </div>
+        </div>
         <div class="row mt-4">
             <div class="col-12 d-flex justify-content-end">
                 <button class="btn btn-success" id="submitBtn">送出</button>
@@ -223,6 +242,7 @@
                 extDepartment: $('#extDepartment').val(),
                 extGrade: $('#extGrade').val(),
                 organization: $('#organization').val(),
+                channel: $('#ytChannel').val(),
             }
             $.ajax({
                 url: location.origin + "/liff/userinfo",
@@ -262,6 +282,19 @@
             $('#studentId').val('{{ user_info.studentId }}');
             $('#extDepartment').val('{{ user_info.extDepartment }}');
             $('#extGrade').val('{{ user_info.extGrade }}');
+            $('#ytChannel').val('{{ user_yt.channel }}');
+
+            // 設定顯示的yt會員等級
+            const levelMapping = {
+                0: '無',
+                1: '請老師喝杯水',
+                2: '請老師吃便當',
+                3: '請老師吃大餐'
+            };
+            let levelValue = parseInt('{{ user_yt.level }}') || 0;
+            let levelName = levelMapping[levelValue];
+            $('#ytLevel').empty();
+            $('#ytLevel').append(`<option value="${levelValue}" selected>${levelName}</option>`);
 
             // 如果有學院預設值，觸發更新系所
             // 系統偵測到使用者選擇學院後，會自動更新系所選項。但若是已經有預設值，則不會觸發更新系所，因此需要手動觸發

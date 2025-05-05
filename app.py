@@ -2,8 +2,9 @@ from config import Config
 from features.base import feature_factory
 from map import Map, FeatureStatus, Permission, DatabaseCollectionMap
 from api.linebot_helper import LineBotHelper
-from flask import Flask, request, abort
+from flask import Flask, request, abort, render_template
 from liff_app import liff_app
+from admin_app import admin_app
 from linebot.v3.exceptions import (
     InvalidSignatureError
 )
@@ -22,6 +23,7 @@ import traceback
 
 app = Flask(__name__)
 app.register_blueprint(liff_app, url_prefix='/liff')
+app.register_blueprint(admin_app, url_prefix='/admin')
 
 # 初始化 Config
 config = Config()
@@ -33,6 +35,10 @@ firebaseService = config.firebaseService
 @app.route('/')
 def home():
     return 'Bigdata Line Bot!'
+
+@app.route('/unauthorized', methods=['GET'])
+def unauthorized():
+    return render_template('http/unauthorized.html')
 
 @app.route("/callback", methods=['POST'])
 def callback():
@@ -60,8 +66,9 @@ def handle_follow(event):
         # 檢查使用者是否存在，若不存在則新增至資料庫
         if not firebaseService.get_data(DatabaseCollectionMap.USER, user_id):
             user_info = LineBotHelper.get_user_info(user_id)
-            # 設定使用者的權限為USER，並設定為啟用狀態
-            user_info.update({'permission': Permission.USER, 'isActive': True})
+            user_yt = {'channel': '', 'level': 0, 'joinAt': ''}
+            # 設定使用者的權限為USER，並設定為啟用狀態以及使用者youtube的資料
+            user_info.update({'permission': Permission.USER, 'isActive': True, 'youtube': user_yt})
             firebaseService.add_data(DatabaseCollectionMap.USER, user_id, user_info)
 
         follow_doc = firebaseService.get_data(DatabaseCollectionMap.CONFIG, 'follow')

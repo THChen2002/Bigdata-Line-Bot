@@ -1,5 +1,5 @@
 from config import Config
-from map import LIFFSize, EquipmentStatus, DatabaseCollectionMap, Permission, EquipmentType, EquipmentName
+from map import LIFF, EquipmentStatus, DatabaseCollectionMap, Permission, EquipmentType, EquipmentName
 from flask import Blueprint, request, render_template, jsonify
 from api.linebot_helper import LineBotHelper
 from linebot.v3.messaging import (
@@ -18,17 +18,17 @@ firebaseService = config.firebaseService
 
 @liff_app.route('/full', methods=['GET'])
 def full():
-    liff_id = LIFFSize.FULL.value
+    liff_id = LIFF.FULL.value
     return render_template('liff/liff.html', liff_id=liff_id)
 
 @liff_app.route('/tall', methods=['GET'])
 def tall():
-    liff_id = LIFFSize.TALL.value
+    liff_id = LIFF.TALL.value
     return render_template('liff/liff.html', liff_id=liff_id)
 
 @liff_app.route('/compact', methods=['GET'])
 def compact():
-    liff_id = LIFFSize.COMPACT.value
+    liff_id = LIFF.COMPACT.value
     return render_template('liff/liff.html', liff_id=liff_id)
 
 # ----------------LIFF 三種尺寸跳轉用頁面(勿動) End----------------
@@ -37,9 +37,10 @@ def compact():
 # ----------------使用者詳細資料 Start----------------
 @liff_app.route('/tall/userinfo', methods=['GET'])
 def userinfo():
-    liff_id = LIFFSize.TALL.value
+    liff_id = LIFF.TALL.value
     user_id = request.args.get('userId')
     user_info = firebaseService.get_data(DatabaseCollectionMap.USER, user_id).get('details')
+    user_yt = firebaseService.get_data(DatabaseCollectionMap.USER, user_id).get('youtube')
     return render_template('liff/userinfo.html', **locals())
 
 @liff_app.route('/userinfo', methods=['POST'])
@@ -48,17 +49,24 @@ def userinfo_post():
         data = request.form.to_dict()
         user_id = data.pop('userId')
         user_info = firebaseService.get_data(DatabaseCollectionMap.USER, user_id).get('details')
+        user_yt = firebaseService.get_data(DatabaseCollectionMap.USER, user_id).get('youtube')
+        # 分開處理 youtube 與 details 資料
+        yt_fields = ['channel']
+        yt_data = {k: data.pop(k) for k in yt_fields if k in data}
+        yt_data.update({'channel': yt_data.get('channel'), 'level': user_yt.get('level'), 'joinAt': user_yt.get('joinAt')})
         if user_info:
             verification = user_info.pop('verification')
-            verrfication_keys = ['identity', 'name', 'studentId', 'college', 'department', 'grade']
+            verification_keys = ['identity', 'name', 'studentId', 'college', 'department', 'grade']
             # 如果身份已驗證，限制資料修改
-            if verification and any(data.get(key) != user_info.get(key) for key in verrfication_keys):
+            if verification and any(data.get(key) != user_info.get(key) for key in verification_keys):
                 return jsonify({'success': False, 'message': '身分已驗證，無法修改姓名、學號及學籍資料'})
-            # 將verification加回data並更新到Firebase
+            # 將verification加回data
             data.update({'verification': verification})
         else:
             data.update({'verification': False})
-        firebaseService.update_data(DatabaseCollectionMap.USER, user_id, {'details': data})
+
+        # 更新資料到Firebase
+        firebaseService.update_data(DatabaseCollectionMap.USER, user_id, {'details': data, 'youtube': yt_data})
 
         return jsonify({'success': True, 'message': '設定成功'})
     except Exception as e:
@@ -75,7 +83,7 @@ def userinfo_post():
 # ----------------設備租借 Start----------------
 @liff_app.route('/tall/rent', methods=['GET'])
 def rent():
-    liff_id = LIFFSize.TALL.value
+    liff_id = LIFF.TALL.value
     user_id = request.args.get('userId')
     user_info = firebaseService.get_data(DatabaseCollectionMap.USER, user_id).get('details')
 
