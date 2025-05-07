@@ -167,6 +167,7 @@
                         <th data-sort="id">ID <span class="sort-icon"><i class="bi bi-sort-up"></i></span></th>
                         <th data-sort="userId">User ID <span class="sort-icon"></span></th>
                         <th data-sort="displayName">使用者名稱 <span class="sort-icon"></span></th>
+                        <th data-sort="permission">權限 <span class="sort-icon"></span></th>
                         <th data-sort="YtChannel">YT名稱 <span class="sort-icon"></span></th>
                         <th data-sort="ytLevel">YT會員等級 <span class="sort-icon"></span></th>
                         <th data-sort="joinAt">加入日期 <span class="sort-icon"></span></th>
@@ -251,7 +252,7 @@
                         $('#liff-loading').addClass('d-none');
                         $('#mainContent').removeClass('d-none');
                     } else {
-                        window.location.href = '/unauthorized';
+                        window.location.href = '/forbidden';
                     }
                 }).catch(err => {
                     console.error('取得使用者資訊失敗', err);
@@ -279,22 +280,28 @@
         // 排序功能
         function sortUsers(users, column, direction) {
             return [...users].sort((a, b) => {
-                let valueA = a[column];
-                let valueB = b[column];
+                let valueA, valueB;
 
-                // 處理數字和字串的排序
-                if (typeof valueA === 'string') {
-                    valueA = valueA.toLowerCase();
-                }
-                if (typeof valueB === 'string') {
-                    valueB = valueB.toLowerCase();
-                }
-
-                if (direction === 'asc') {
-                    return valueA > valueB ? 1 : -1;
+                if (column === 'ytLevel') {
+                    valueA = Number(a.youtube?.level ?? 0);
+                    valueB = Number(b.youtube?.level ?? 0);
+                } else if (column === 'YtChannel') {
+                    valueA = a.youtube?.channel?.toLowerCase() ?? '';
+                    valueB = b.youtube?.channel?.toLowerCase() ?? '';
+                } else if (column === 'id') {
+                    valueA = Number(a.id ?? 0);
+                    valueB = Number(b.id ?? 0);
                 } else {
-                    return valueA < valueB ? 1 : -1;
+                    valueA = a[column];
+                    valueB = b[column];
+        
+                    if (typeof valueA === 'string') valueA = valueA.toLowerCase();
+                    if (typeof valueB === 'string') valueB = valueB.toLowerCase();
                 }
+
+                if (valueA > valueB) return direction === 'asc' ? 1 : -1;
+                if (valueA < valueB) return direction === 'asc' ? -1 : 1;
+                return 0;
             });
         }
 
@@ -314,7 +321,7 @@
             }
 
             return users.filter(user =>
-                activeFilters.ytLevels.includes(user.youtube.level.toString())
+                activeFilters.ytLevels.includes((user.youtube?.level ?? '').toString())
             );
         }
 
@@ -439,6 +446,7 @@
                         <td>${index + 1}</td>
                         <td>${user.userId}</td>
                         <td>${user.displayName}</td>
+                        <td>${user.permission}</td>
                         <td>${user.youtube?.channel || ''}</td>
                         <td><span class="badge ${badgeClass}">${badgeText}</span></td>
                         <td>${joinAtDisplay || ''}</td>
@@ -496,7 +504,7 @@
             }
 
             const filteredUsers = usersData.filter(user =>
-                (user.id.toString() || "").includes(searchTerm) ||
+                (user.id?.toString() || "").includes(searchTerm) ||
                 (user.userId || "").toLowerCase().includes(searchTerm) ||
                 (user.displayName || "").toLowerCase().includes(searchTerm) ||
                 (user.youtube?.channel || "").toLowerCase().includes(searchTerm)

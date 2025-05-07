@@ -36,9 +36,9 @@ firebaseService = config.firebaseService
 def home():
     return 'Bigdata Line Bot!'
 
-@app.route('/unauthorized', methods=['GET'])
-def unauthorized():
-    return render_template('http/unauthorized.html')
+@app.route('/forbidden', methods=['GET'])
+def forbidden_page():
+    return render_template('http/forbidden.html')
 
 @app.route("/callback", methods=['POST'])
 def callback():
