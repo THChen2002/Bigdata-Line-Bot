@@ -207,22 +207,17 @@ class RichMenuHelper:
         """
         with ApiClient(configuration) as api_client:
             line_bot_api = MessagingApi(api_client)
-            try:
-                line_bot_api.delete_rich_menu_alias(alias_id)
-            except ApiException as e:
-                if e.status != 404:
-                    raise
-            alias = CreateRichMenuAliasRequest(
-                rich_menu_alias_id=alias_id,
-                rich_menu_id=rich_menu_id
+            line_bot_api.create_rich_menu_alias(
+                CreateRichMenuAliasRequest(
+                    rich_menu_alias_id=alias_id,
+                    rich_menu_id=rich_menu_id
+                )
             )
-            line_bot_api.create_rich_menu_alias(alias)
 
     @staticmethod
     def create_rich_menu_(alias_id):
         with ApiClient(configuration) as api_client:
             line_bot_api = MessagingApi(api_client)
-            line_bot_blob_api = MessagingApiBlob(api_client)
             # 設定 rich menu image
             rich_menu_str = firebaseService.get_data(
                 DatabaseCollectionMap.RICH_MENU,
@@ -258,9 +253,11 @@ class RichMenuHelper:
 # with ApiClient(configuration) as api_client:
 #     line_bot_api = MessagingApi(api_client)
 #     richmenu_list = line_bot_api.get_rich_menu_list()
+#     richmenu_alias_list = line_bot_api.get_rich_menu_alias_list()
+#     for richmenu in richmenu_alias_list.aliases:
+#         line_bot_api.delete_rich_menu_alias(richmenu.rich_menu_alias_id)
 #     for richmenu in richmenu_list.richmenus:
-#         richmenu_id = richmenu.rich_menu_id
-#         line_bot_api.delete_rich_menu(richmenu_id)
+#         line_bot_api.delete_rich_menu(richmenu.rich_menu_id)
 
 #-----------------根據YT會員等級設定rich menu-----------------
 # with ApiClient(configuration) as api_client:
