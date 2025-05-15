@@ -1,6 +1,6 @@
 from config import Config
 from map import LIFF, EquipmentStatus, DatabaseCollectionMap, Permission, EquipmentType, EquipmentName
-from flask import Blueprint, request, render_template, jsonify
+from flask import Blueprint, request, render_template, jsonify, abort
 from api.linebot_helper import LineBotHelper
 from linebot.v3.messaging import (
     TextMessage,
@@ -14,33 +14,39 @@ liff_app = Blueprint('liff_app', __name__)
 config = Config()
 firebaseService = config.firebaseService
 
-# ----------------LIFF 三種尺寸跳轉用頁面(勿動) Start----------------
+def get_liff_id(size: str, default_to_tall: bool = True) -> str:
+    """
+    Get LIFF ID based on size parameter
+    Args:
+        size (str): LIFF size (FULL, TALL, COMPACT)
+        default_to_tall (bool): If True, returns TALL size when invalid. If False, raises 404
+    Returns:
+        str: LIFF ID
+    """
+    if size.upper() in [liff_type.name for liff_type in LIFF]:
+        return getattr(LIFF, size.upper()).value
+    if default_to_tall:
+        return LIFF.TALL.value
+    abort(404)
 
-@liff_app.route('/full', methods=['GET'])
-def full():
-    liff_id = LIFF.FULL.value
+# ----------------LIFF 動態尺寸跳轉用頁面 Start----------------
+
+@liff_app.route('/<size>', methods=['GET'])
+def liff_size(size):
+    liff_id = get_liff_id(size, default_to_tall=False)
     return render_template('liff/liff.html', liff_id=liff_id)
 
-@liff_app.route('/tall', methods=['GET'])
-def tall():
-    liff_id = LIFF.TALL.value
-    return render_template('liff/liff.html', liff_id=liff_id)
-
-@liff_app.route('/compact', methods=['GET'])
-def compact():
-    liff_id = LIFF.COMPACT.value
-    return render_template('liff/liff.html', liff_id=liff_id)
-
-# ----------------LIFF 三種尺寸跳轉用頁面(勿動) End----------------
+# ----------------LIFF 動態尺寸跳轉用頁面 End----------------
 
 # ----------------LIFF 頁面(根據需求設定不同大小) Start----------------
 # ----------------使用者詳細資料 Start----------------
-@liff_app.route('/tall/userinfo', methods=['GET'])
-def userinfo():
-    liff_id = LIFF.TALL.value
+@liff_app.route('/<size>/userinfo', methods=['GET'])
+def userinfo(size):
+    liff_id = get_liff_id(size)
     user_id = request.args.get('userId')
-    user_info = firebaseService.get_data(DatabaseCollectionMap.USER, user_id).get('details')
-    user_yt = firebaseService.get_data(DatabaseCollectionMap.USER, user_id).get('youtube')
+    user_data = firebaseService.get_data(DatabaseCollectionMap.USER, user_id)
+    user_info = user_data.get('details', {})
+    user_yt = user_data.get('youtube', {})
     return render_template('liff/userinfo.html', **locals())
 
 @liff_app.route('/userinfo', methods=['POST'])
@@ -48,8 +54,9 @@ def userinfo_post():
     try:
         data = request.form.to_dict()
         user_id = data.pop('userId')
-        user_info = firebaseService.get_data(DatabaseCollectionMap.USER, user_id).get('details')
-        user_yt = firebaseService.get_data(DatabaseCollectionMap.USER, user_id).get('youtube')
+        user_data = firebaseService.get_data(DatabaseCollectionMap.USER, user_id)
+        user_info = user_data.get('details', {})
+        user_yt = user_data.get('youtube', {})
         # 分開處理 youtube 與 details 資料
         yt_fields = ['channel']
         yt_data = {k: data.pop(k) for k in yt_fields if k in data}
@@ -81,9 +88,9 @@ def userinfo_post():
 # ----------------使用者詳細資料 End----------------
 
 # ----------------設備租借 Start----------------
-@liff_app.route('/tall/rent', methods=['GET'])
-def rent():
-    liff_id = LIFF.TALL.value
+@liff_app.route('/<size>/rent', methods=['GET'])
+def rent(size):
+    liff_id = get_liff_id(size)
     user_id = request.args.get('userId')
     user_info = firebaseService.get_data(DatabaseCollectionMap.USER, user_id).get('details')
 
