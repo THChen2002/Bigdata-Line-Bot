@@ -505,9 +505,9 @@
 
             const filteredUsers = usersData.filter(user =>
                 (user.id?.toString() || "").includes(searchTerm) ||
-                (user.userId || "").toLowerCase().includes(searchTerm) ||
-                (user.displayName || "").toLowerCase().includes(searchTerm) ||
-                (user.youtube?.channel || "").toLowerCase().includes(searchTerm)
+                (user.userId?.toString() || "").toLowerCase().includes(searchTerm) ||
+                (user.displayName?.toString() || "").toLowerCase().includes(searchTerm) ||
+                (user.youtube?.channel?.toString() || "").toLowerCase().includes(searchTerm)
             );
 
             if (filteredUsers.length === 0) {
