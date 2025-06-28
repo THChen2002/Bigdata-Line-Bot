@@ -1,681 +1,207 @@
-{% extends "base.html" %}
-{% block title %}後台管理系統{% endblock %}
+{% extends 'admin/base.html' %}
+{% block title %}後台管理系統 - 數據分析{% endblock %}
+{% block head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Pass users data from backend to JavaScript
+    let usersData = JSON.parse('{{ users|tojson|safe }}');
+    let adminUsers = JSON.parse('{{ admin_user_ids|tojson|safe }}');
+    let liffId = '{{ liff_id }}';
+</script>
+<script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+<script src="{{ url_for('static', filename='js/admin/base.js') }}"></script>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin/base.css') }}">
+{% endblock %}
 {% block content %}
-<style>
-    .table th {
-        font-weight: 600;
-        color: #555;
-        cursor: pointer;
-        user-select: none;
-    }
-
-    .table th:hover {
-        background-color: #f1f3f5;
-    }
-
-    .sort-icon {
-        display: inline-block;
-        width: 16px;
-        height: 16px;
-        margin-left: 5px;
-    }
-
-    .badge-yt-0 {
-        background-color: #e0e0e0;
-        color: #495057;
-    }
-    
-    .badge-yt-1 {
-        background-color: #b2dffc;
-        color: #084298;
-    }
-    
-    .badge-yt-2 {
-        background-color: #a0e6c2;
-        color: #056c4f;
-    }
-    
-    .badge-yt-3 {
-        background-color: #ffe066;
-        color: #5c4400;
-    }
-
-    .btn-edit {
-        color: #0d6efd;
-        cursor: pointer;
-    }
-
-    .modal-header {
-        background-color: #f8f9fa;
-        border-bottom: 1px solid #eaeaea;
-    }
-
-    .modal-footer {
-        border-top: 1px solid #eaeaea;
-    }
-
-    .filter-panel {
-        background-color: #f8f9fa;
-        border-radius: 8px;
-        padding: 15px;
-        margin-bottom: 20px;
-        border: 1px solid #e9ecef;
-        display: none;
-    }
-
-    .filter-panel.show {
-        display: block;
-        animation: fadeIn 0.3s;
-    }
-
-    .filter-badge {
-        margin-right: 5px;
-        margin-bottom: 5px;
-        cursor: pointer;
-    }
-
-    .filter-badge i {
-        margin-left: 5px;
-    }
-
-    @keyframes fadeIn {
-        from {
-            opacity: 0;
-            transform: translateY(-10px);
-        }
-
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-</style>
-
-<!-- 主要內容 -->
+<!-- LIFF Loading -->
 <div id="liff-loading" class="d-flex justify-content-center align-items-center vh-100 flex-column">
     <div class="spinner-border text-success" role="status"></div>
     <p class="mt-3">正在驗證 LINE 登入，請稍候...</p>
 </div>
-<div class="row mb-4 d-none" id="mainContent">
-    <div class="col">
-        <h5 class="card-title mb-3">使用者管理</h5>
 
-        <!-- 搜尋功能 -->
-        <div class="row g-3 mb-4">
-            <div class="col-md-6">
-                <div class="input-group">
-                    <input type="text" id="searchInput" class="form-control" placeholder="搜尋使用者ID、名稱...">
-                    <button class="btn btn-primary" type="button" id="searchButton">
-                        <i class="bi bi-search me-1"></i>查詢
-                    </button>
-                </div>
+<!-- Main Content (Hidden initially) -->
+<div id="mainContent" class="d-none">
+<!-- Analytics Dashboard View -->
+<div id="dashboard-view" class="view active">
+    <h2 class="mb-4">數據分析</h2>
+    <div class="row g-4">
+        <!-- Stat Cards -->
+        <div class="col-xl-3 col-md-6">
+            <div class="stat-card">
+                <div class="stat-label">會員總數</div>
+                <div class="stat-value text-primary" id="total-members-card">0</div>
             </div>
-            <div class="col-md-6 text-md-end">
-                <div class="btn-group">
-                    <button type="button" class="btn btn-outline-secondary" id="filterButton">
-                        <i class="bi bi-funnel me-1"></i>篩選
-                    </button>
-                    <button type="button" class="btn btn-outline-secondary" id="resetButton">
-                        <i class="bi bi-arrow-repeat me-1"></i>重置
-                    </button>
+        </div>
+            <div class="col-xl-3 col-md-6">
+            <div class="stat-card">
+                <div class="stat-label">非會員人數</div>
+                <div class="stat-value text-secondary" id="non-members-card">0</div>
+            </div>
+        </div>
+        <div class="col-xl-6 col-md-12">
+            <div class="stat-card p-0 d-flex justify-content-around">
+                <div class="text-center p-4">
+                    <div class="stat-label">Lv1 請老師喝杯水</div>
+                    <div class="stat-value" style="color:#0d6efd;" id="level1-card">0</div>
+                </div>
+                <div class="vr my-3"></div>
+                <div class="text-center p-4">
+                    <div class="stat-label">Lv2 請老師吃便當</div>
+                    <div class="stat-value" style="color:#198754;" id="level2-card">0</div>
+                </div>
+                <div class="vr my-3"></div>
+                <div class="text-center p-4">
+                    <div class="stat-label">Lv3 請老師吃大餐</div>
+                    <div class="stat-value" style="color:#ffc107;" id="level3-card">0</div>
                 </div>
             </div>
         </div>
-
-        <!-- 篩選面板 -->
-        <div class="filter-panel" id="filterPanel">
-            <div class="row">
-                <div class="col-md-12 mb-3">
-                    <h6 class="mb-2">YT會員等級</h6>
-                    <div>
-                        <div class="form-check form-check-inline">
-                            <input class="form-check-input" type="checkbox" id="level0" value="0">
-                            <label class="form-check-label" for="level0">無</label>
-                        </div>
-                        <div class="form-check form-check-inline">
-                            <input class="form-check-input" type="checkbox" id="level1" value="1">
-                            <label class="form-check-label" for="level1">請老師喝杯水</label>
-                        </div>
-                        <div class="form-check form-check-inline">
-                            <input class="form-check-input" type="checkbox" id="level2" value="2">
-                            <label class="form-check-label" for="level2">請老師吃便當</label>
-                        </div>
-                        <div class="form-check form-check-inline">
-                            <input class="form-check-input" type="checkbox" id="level3" value="3">
-                            <label class="form-check-label" for="level3">請老師吃大餐</label>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-12">
-                    <button type="button" class="btn btn-primary btn-sm" id="applyFilterBtn">套用篩選</button>
-                    <button type="button" class="btn btn-outline-secondary btn-sm" id="closeFilterBtn">關閉</button>
+        <!-- Chart -->
+        <div class="col-12">
+            <div class="stat-card">
+                <h5 class="mb-3 card-title">付費會員等級分佈</h5>
+                <div style="height: 350px;">
+                    <canvas id="membersChart"></canvas>
                 </div>
             </div>
-        </div>
-
-        <!-- 已套用的篩選條件 -->
-        <div id="activeFilters" class="mb-3" style="display: none;">
-            <div class="d-flex flex-wrap" id="filterBadges">
-            </div>
-        </div>
-
-        <!-- 使用者列表 -->
-        <div class="table-responsive">
-            <table class="table table-hover align-middle">
-                <thead class="table-light">
-                    <tr>
-                        <th data-sort="id">ID <span class="sort-icon"><i class="bi bi-sort-up"></i></span></th>
-                        <th data-sort="userId">User ID <span class="sort-icon"></span></th>
-                        <th data-sort="displayName">使用者名稱 <span class="sort-icon"></span></th>
-                        <th data-sort="permission">權限 <span class="sort-icon"></span></th>
-                        <th data-sort="YtChannel">YT名稱 <span class="sort-icon"></span></th>
-                        <th data-sort="ytLevel">YT會員等級 <span class="sort-icon"></span></th>
-                        <th data-sort="joinAt">加入日期 <span class="sort-icon"></span></th>
-                        <th>動作</th>
-                    </tr>
-                </thead>                
-                <tbody id="userTableBody">
-                </tbody>
-            </table>
         </div>
     </div>
 </div>
 
-<!-- 編輯用戶彈窗 -->
+<!-- User Management View -->
+<div id="users-view" class="view">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="mb-0">使用者管理</h2>
+    </div>
+    <div class="card">
+        <div class="card-body">
+            <!-- 搜尋功能 -->
+            <div class="row g-3 mb-4">
+                <div class="col-md-6">
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-search"></i></span>
+                        <input type="text" id="searchInput" class="form-control"
+                            placeholder="搜尋使用者ID、名稱...">
+                    </div>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-outline-secondary" id="filterButton">
+                            <i class="bi bi-funnel me-1"></i>篩選
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary" id="resetButton">
+                            <i class="bi bi-arrow-repeat me-1"></i>重置
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <!-- 篩選面板 -->
+            <div class="filter-panel" id="filterPanel">
+                <div class="row">
+                    <div class="col-md-12 mb-3">
+                        <h6 class="mb-2">YT會員等級</h6>
+                        <div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="checkbox" id="level0" value="0">
+                                <label class="form-check-label" for="level0">無</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="checkbox" id="level1" value="1">
+                                <label class="form-check-label" for="level1">請老師喝杯水</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="checkbox" id="level2" value="2">
+                                <label class="form-check-label" for="level2">請老師吃便當</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="checkbox" id="level3" value="3">
+                                <label class="form-check-label" for="level3">請老師吃大餐</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <button type="button" class="btn btn-primary btn-sm" id="applyFilterBtn">套用篩選</button>
+                        <button type="button" class="btn btn-outline-secondary btn-sm"
+                            id="closeFilterBtn">關閉</button>
+                    </div>
+                </div>
+            </div>
+            <!-- 已套用的篩選條件 -->
+            <div id="activeFilters" class="mb-3" style="display: none;">
+                <strong>篩選條件: </strong>
+                <div class="d-inline-flex flex-wrap" id="filterBadges">
+                </div>
+            </div>
+            <!-- 使用者列表 -->
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead>
+                        <tr>
+                            <th data-sort="id">ID <span class="sort-icon"><i class="bi bi-sort-up"></i></span></th>
+                            <th data-sort="userId">User ID <span class="sort-icon"></span></th>
+                            <th data-sort="displayName">使用者名稱 <span class="sort-icon"></span></th>
+                            <th data-sort="YtChannel">YT名稱 <span class="sort-icon"></span></th>
+                            <th data-sort="ytLevel">YT會員等級 <span class="sort-icon"></span></th>
+                            <th data-sort="joinAt">加入日期 <span class="sort-icon"></span></th>
+                            <th>動作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="userTableBody">
+                        <!-- Rows will be inserted here by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+</main>
+</div>
+
+
+<!-- Edit User Modal -->
 <div class="modal fade" id="editUserModal" tabindex="-1" aria-labelledby="editUserModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="editUserModalLabel">編輯使用者</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+<div class="modal-dialog">
+<div class="modal-content">
+    <div class="modal-header">
+        <h5 class="modal-title" id="editUserModalLabel"><i class="bi bi-pencil-square me-2"></i>編輯使用者</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+    </div>
+    <div class="modal-body">
+        <form id="editUserForm">
+            <input type="hidden" id="editUserId">
+            <div class="mb-3">
+                <label for="editUserName" class="form-label">使用者名稱</label>
+                <input type="text" class="form-control" id="editUserName" readonly>
             </div>
-            <div class="modal-body">
-                <form id="editUserForm">
-                    <input type="hidden" id="editUserId">
-
-                    <div class="mb-3">
-                        <label for="editUserName" class="form-label">使用者名稱</label>
-                        <input type="text" class="form-control" id="editUserName" readonly>
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="editUserIdField" class="form-label">User ID</label>
-                        <input type="text" class="form-control" id="editUserIdField" readonly>
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="editYtChannel" class="form-label">YT名稱</label>
-                        <input type="text" class="form-control" id="editYtChannel">
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="editYtLevel" class="form-label">YT會員等級</label>
-                        <select class="form-select" id="editYtLevel">
-                            <option value="0">無</option>
-                            <option value="1">等級 1 - 請老師喝杯水</option>
-                            <option value="2">等級 2 - 請老師吃便當</option>
-                            <option value="3">等級 3 - 請老師吃大餐</option>
-                        </select>
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="editJoinAt" class="form-label">註冊日期</label>
-                        <input type="text" class="form-control" id="editJoinAt" readonly>
-                    </div>
-                </form>
+            <div class="mb-3">
+                <label for="editUserIdField" class="form-label">User ID</label>
+                <input type="text" class="form-control" id="editUserIdField" readonly>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
-                <button type="button" class="btn btn-primary" id="saveUserBtn">儲存變更</button>
+            <div class="mb-3">
+                <label for="editYtChannel" class="form-label">YT名稱</label>
+                <input type="text" class="form-control" id="editYtChannel">
             </div>
-        </div>
+            <div class="mb-3">
+                <label for="editYtLevel" class="form-label">YT會員等級</label>
+                <select class="form-select" id="editYtLevel">
+                    <option value="0">無</option>
+                    <option value="1">等級 1 - 請老師喝杯水</option>
+                    <option value="2">等級 2 - 請老師吃便當</option>
+                    <option value="3">等級 3 - 請老師吃大餐</option>
+                </select>
+            </div>
+            <div class="mb-3">
+                <label for="editJoinAt" class="form-label">註冊日期</label>
+                <input type="date" class="form-control" id="editJoinAt">
+            </div>
+        </form>
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+        <button type="button" class="btn btn-primary" id="saveUserBtn">儲存變更</button>
     </div>
 </div>
-
-<script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-<script>
-    let userId;
-    let adminUsers = JSON.parse('{{ admin_user_ids|tojson|safe }}');
-    initializeLiff('{{ liff_id }}');
-
-    // 初始化LIFF
-    function initializeLiff(liffId) {
-        liff.init({ liffId: liffId }).then(() => {
-            if (!liff.isLoggedIn()) {
-                liff.login({
-                    redirectUri: window.location.href
-                });
-            } else {
-                liff.getProfile().then(profile => {
-                    userId = profile.userId;
-                    if(adminUsers.includes(userId)) {
-                        $('#liff-loading').addClass('d-none');
-                        $('#mainContent').removeClass('d-none');
-                    } else {
-                        window.location.href = '/forbidden';
-                    }
-                }).catch(err => {
-                    console.error('取得使用者資訊失敗', err);
-                });
-            }
-        }).catch(err => {
-            console.error('LIFF 初始化失敗', err);
-        });
-    }
-
-    $(document).ready(function () {
-        const usersData = JSON.parse('{{ users|tojson|safe }}') || [];
-
-        // 排序狀態
-        let currentSort = {
-            column: 'id',
-            direction: 'asc'
-        };
-
-        // 篩選狀態
-        let activeFilters = {
-            ytLevels: []
-        };
-
-        // 排序功能
-        function sortUsers(users, column, direction) {
-            return [...users].sort((a, b) => {
-                let valueA, valueB;
-
-                if (column === 'ytLevel') {
-                    valueA = Number(a.youtube?.level ?? 0);
-                    valueB = Number(b.youtube?.level ?? 0);
-                } else if (column === 'YtChannel') {
-                    valueA = a.youtube?.channel?.toLowerCase() ?? '';
-                    valueB = b.youtube?.channel?.toLowerCase() ?? '';
-                } else if (column === 'id') {
-                    valueA = Number(a.id ?? 0);
-                    valueB = Number(b.id ?? 0);
-                } else {
-                    valueA = a[column];
-                    valueB = b[column];
-        
-                    if (typeof valueA === 'string') valueA = valueA.toLowerCase();
-                    if (typeof valueB === 'string') valueB = valueB.toLowerCase();
-                }
-
-                if (valueA > valueB) return direction === 'asc' ? 1 : -1;
-                if (valueA < valueB) return direction === 'asc' ? -1 : 1;
-                return 0;
-            });
-        }
-
-        // 更新排序圖標
-        function updateSortIcons() {
-            $('th .sort-icon').html('');
-            const icon = currentSort.direction === 'asc' ?
-                '<i class="bi bi-sort-up"></i>' :
-                '<i class="bi bi-sort-down"></i>';
-            $(`th[data-sort="${currentSort.column}"] .sort-icon`).html(icon);
-        }
-
-        // 篩選用戶
-        function filterUsers(users) {
-            if (activeFilters.ytLevels.length === 0) {
-                return users;
-            }
-
-            return users.filter(user =>
-                activeFilters.ytLevels.includes((user.youtube?.level ?? '').toString())
-            );
-        }
-
-        // 更新篩選標籤
-        function updateFilterBadges() {
-            const badgesContainer = $("#filterBadges");
-            badgesContainer.empty();
-
-            let hasFilters = false;
-
-            // 會員等級篩選標籤
-            if (activeFilters.ytLevels.length > 0) {
-                hasFilters = true;
-
-                activeFilters.ytLevels.forEach(level => {
-                    let levelText = "";
-                    switch (parseInt(level)) {
-                        case 0: levelText = "無"; break;
-                        case 1: levelText = "請老師喝杯水"; break;
-                        case 2: levelText = "請老師吃便當"; break;
-                        case 3: levelText = "請老師吃大餐"; break;
-                    }
-
-                    const badge = `
-                        <span class="badge bg-info filter-badge" data-type="ytLevel" data-value="${level}">
-                            YT會員: ${levelText} <i class="bi bi-x-circle"></i>
-                        </span>
-                    `;
-
-                    badgesContainer.append(badge);
-                });
-            }
-
-            // 顯示或隱藏篩選標籤區域
-            if (hasFilters) {
-                $("#activeFilters").show();
-            } else {
-                $("#activeFilters").hide();
-            }
-
-            // 綁定移除篩選標籤事件
-            $(".filter-badge").click(function () {
-                const type = $(this).data("type");
-                const value = $(this).data("value").toString();
-
-                if (type === "ytLevel") {
-                    activeFilters.ytLevels = activeFilters.ytLevels.filter(level => level !== value);
-                    $(`#level${value}`).prop("checked", false);
-                }
-
-                updateFilterBadges();
-                renderUserTable(usersData);
-            });
-        }
-
-        // 顯示用的時間格式轉換
-        function getDisplayTimestamp(datetime) {
-            const date = new Date(datetime);
-            const year = date.getFullYear();
-            const month = String(date.getMonth() + 1).padStart(2, '0');
-            const day = String(date.getDate()).padStart(2, '0');
-            let hours = date.getHours();
-            const minutes = String(date.getMinutes()).padStart(2, '0');
-            const seconds = String(date.getSeconds()).padStart(2, '0');
-            const period = hours >= 12 ? '下午' : '上午';
-            hours = hours % 12 || 12;
-            hours = String(hours).padStart(2, '0');
-        
-            return `${year}/${month}/${day} ${period}${hours}:${minutes}:${seconds}`;
-        }
-
-        // 渲染使用者列表
-        function renderUserTable(users) {
-            const tableBody = $("#userTableBody");
-            tableBody.empty();
-
-            // 先篩選再排序
-            const filteredUsers = filterUsers(users)
-            const sortedUsers = sortUsers(filteredUsers, currentSort.column, currentSort.direction);
-
-            if (sortedUsers.length === 0) {
-                tableBody.append(`
-                    <tr>
-                        <td colspan="7" class="text-center py-4">
-                            <i class="bi bi-search me-2"></i>沒有找到符合條件的用戶
-                        </td>
-                    </tr>
-                `);
-                return;
-            }
-
-            sortedUsers.forEach((user, index) => {
-                const details = user.details || {};
-                const youtube = user.youtube || {};
-                const ytChannel = youtube.channel || '';
-                const ytLevel = parseInt(youtube.level ?? 0);
-                const joinAtDisplay = youtube.joinAt ? getDisplayTimestamp(youtube.joinAt) : '';
-
-                let badgeClass = "";
-                let badgeText = "";
-                switch (ytLevel) {
-                    case 0:
-                        badgeClass = "badge-yt-0";
-                        badgeText = "無";
-                        break;
-                    case 1:
-                        badgeClass = "badge-yt-1";
-                        badgeText = "請老師喝杯水";
-                        break;
-                    case 2:
-                        badgeClass = "badge-yt-2";
-                        badgeText = "請老師吃便當";
-                        break;
-                    case 3:
-                        badgeClass = "badge-yt-3";
-                        badgeText = "請老師吃大餐";
-                        break;
-                }
-
-                const row = `
-                    <tr>
-                        <td>${index + 1}</td>
-                        <td>${user.userId}</td>
-                        <td>${user.displayName}</td>
-                        <td>${user.permission}</td>
-                        <td>${user.youtube?.channel || ''}</td>
-                        <td><span class="badge ${badgeClass}">${badgeText}</span></td>
-                        <td>${joinAtDisplay || ''}</td>
-                        <td>
-                            <button class="btn btn-sm btn-edit edit-user" data-userid="${user.userId}">
-                                <i class="bi bi-pencil-square"></i> 編輯
-                            </button>
-                        </td>
-                    </tr>
-                `;
-                tableBody.append(row);
-            });
-
-            // 更新排序圖標
-            updateSortIcons();
-        }
-
-        $(document).on('click', '.edit-user', function () {
-            const userId = $(this).data("userid");
-            const user = usersData.find(u => u.userId === userId);
-        
-            if (user) {
-                openEditModal(user);
-            } else {
-                alert("找不到對應的使用者資料！");
-            }
-        });
-
-        // 初始渲染
-        renderUserTable(usersData);
-
-        // 綁定排序事件
-        $('th[data-sort]').click(function () {
-            const column = $(this).data('sort');
-
-            // 如果點擊的是當前排序的列，則切換排序方向
-            if (column === currentSort.column) {
-                currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
-            } else {
-                // 否則，更改排序列並設置為升序
-                currentSort.column = column;
-                currentSort.direction = 'asc';
-            }
-
-            renderUserTable(usersData);
-        });
-
-        // 搜尋功能
-        $("#searchButton").click(function () {
-            const searchTerm = $("#searchInput").val().toLowerCase();
-
-            if (searchTerm === "") {
-                renderUserTable(usersData);
-                return;
-            }
-
-            const filteredUsers = usersData.filter(user =>
-                (user.id?.toString() || "").includes(searchTerm) ||
-                (user.userId?.toString() || "").toLowerCase().includes(searchTerm) ||
-                (user.displayName?.toString() || "").toLowerCase().includes(searchTerm) ||
-                (user.youtube?.channel?.toString() || "").toLowerCase().includes(searchTerm)
-            );
-
-            if (filteredUsers.length === 0) {
-                $("#userTableBody").html(`
-                    <tr>
-                        <td colspan="7" class="text-center py-4">
-                            <i class="bi bi-search me-2"></i>沒有找到符合條件的用戶
-                        </td>
-                    </tr>
-                `);
-                return;
-            }
-
-            // 正常渲染（這裡建議你加 skipFilter）
-            renderUserTable(filteredUsers);
-        });
-
-        // 按下Enter鍵也可以搜尋
-        $("#searchInput").keypress(function (e) {
-            if (e.which === 13) {
-                $("#searchButton").click();
-            }
-        });
-
-        // 篩選按鈕
-        $("#filterButton").click(function () {
-            $("#filterPanel").toggleClass("show");
-        });
-
-        // 關閉篩選面板
-        $("#closeFilterBtn").click(function () {
-            $("#filterPanel").removeClass("show");
-        });
-
-        // 套用篩選
-        $("#applyFilterBtn").click(function () {
-            // 收集選中的會員等級
-            activeFilters.ytLevels = [];
-            $("input[type=checkbox]:checked").each(function () {
-                activeFilters.ytLevels.push($(this).val());
-            });
-
-            // 更新篩選標籤
-            updateFilterBadges();
-
-            // 重新渲染表格
-            renderUserTable(usersData);
-
-            // 關閉篩選面板
-            $("#filterPanel").removeClass("show");
-
-            // 顯示篩選成功提示
-            if (activeFilters.ytLevels.length > 0) {
-                showToast("篩選條件已套用");
-            }
-        });
-
-        // 重置按鈕
-        $("#resetButton").click(function () {
-            // 清空搜尋框
-            $("#searchInput").val("");
-
-            // 清空篩選條件
-            activeFilters.ytLevels = [];
-            $("input[type=checkbox]").prop("checked", false);
-
-            // 更新篩選標籤
-            updateFilterBadges();
-
-            // 重新渲染表格
-            renderUserTable(usersData);
-
-            // 顯示重置成功提示
-            showToast("已重置所有篩選條件");
-        });
-
-        // 打開編輯彈窗
-        function openEditModal(user) {
-            let joinAtDisplay = getDisplayTimestamp(user.youtube.joinAt);
-            $("#editUserId").val(user.id);
-            $("#editUserName").val(user.displayName);
-            $("#editUserIdField").val(user.userId);
-            $("#editYtChannel").val(user.youtube.channel || '');
-            $("#editYtLevel").val(user.youtube.level ?? 0);
-            $("#editJoinAt").val(user.youtube.joinAt || '');
-        
-            const editModal = new bootstrap.Modal($('#editUserModal'));
-            editModal.show();
-        }
-
-        // 儲存使用者變更
-        $("#saveUserBtn").click(function () {
-            const userId = $("#editUserIdField").val();
-            const newYtLevel = parseInt($("#editYtLevel").val());
-            const newYtChannel = $("#editYtChannel").val();
-
-            // 這裡只是更新前端顯示
-            // 用 userId 找到對應的使用者資料
-            const userIndex = usersData.findIndex(u => u.userId === userId);
-        
-            if (userIndex !== -1) {
-                usersData[userIndex].youtube.level = newYtLevel;
-                usersData[userIndex].youtube.channel = newYtChannel;
-                renderUserTable(usersData);
-
-                // 發送修改的資料到後端
-                $.ajax({
-                    url: '/admin/update',
-                    method: 'POST',
-                    contentType: 'application/json',
-                    data: JSON.stringify({
-                        userId: userId,
-                        channel: newYtChannel,
-                        level: newYtLevel,
-                        joinAt: usersData[userIndex].youtube.joinAt
-                    }),
-                    success: function (response) {
-                        if (response.success) {
-                            // 成功後重新 render
-                            renderUserTable(usersData);
-                            // 關閉視窗
-                            const editModal = bootstrap.Modal.getInstance(document.getElementById('editUserModal'));
-                            editModal.hide();
-                            showToast("使用者資料已更新成功！");
-                        } else {
-                            alert('更新失敗：' + response.message);
-                        }
-                    },
-                    error: function (xhr, status, error) {
-                        alert('發生錯誤：' + error);
-                    }
-                });
-                showToast("使用者資料已更新成功！");
-            }
-            else {
-                alert("找不到對應的使用者資料！");
-            }
-        });
-
-        // 顯示提示訊息
-        function showToast(message) {
-            const toast = `
-                <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
-                    <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true">
-                        <div class="toast-header">
-                            <strong class="me-auto">系統通知</strong>
-                            <small>剛剛</small>
-                            <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
-                        </div>
-                        <div class="toast-body">
-                            ${message}
-                        </div>
-                    </div>
-                </div>
-            `;
-
-            // 移除舊的提示
-            $('.position-fixed.bottom-0.end-0.p-3').remove();
-
-            // 添加新的提示
-            $(toast).appendTo('body');
-            setTimeout(() => {
-                $('.toast').toast('hide');
-                setTimeout(() => {
-                    $('.position-fixed.bottom-0.end-0.p-3').remove();
-                }, 500);
-            }, 3000);
-        }
-    });
-</script>
+</div>
+</div>
+</div> <!-- End of mainContent -->
 {% endblock %}
