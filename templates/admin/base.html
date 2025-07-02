@@ -9,10 +9,15 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
-    {% block head %}
     <link rel="stylesheet" href="{{ url_for('static', filename='css/admin/base.css') }}">
     <script src="{{ url_for('static', filename='js/admin/base.js') }}"></script>
+    <script>
+        let liffId = '{{ liff_id }}'
+        let adminUsers = JSON.parse('{{ admin_user_ids|tojson|safe }}');
+    </script>
+    {% block head %}
     {% endblock %}
     <title>{% block title %}{% endblock %}</title>
 </head>
@@ -22,7 +27,7 @@
     <div id="app-container">
         <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm">
             <div class="container-fluid">
-                <a class="navbar-brand" href="#">
+                <a class="navbar-brand" href="{{ url_for('admin_app.admin') }}">
                     <i class="bi bi-person-video3 me-2"></i>管理後台
                 </a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
@@ -32,21 +37,24 @@
                 <div class="collapse navbar-collapse" id="navbarNav">
                     <ul class="navbar-nav">
                         <li class="nav-item">
-                            <a class="nav-link active" href="#" id="nav-dashboard"><i class="bi bi-graph-up-arrow me-1"></i>分析儀表板</a>
+                            <a class="nav-link" href="{{ url_for('admin_app.admin') }}" id="nav-dashboard"><i class="bi bi-graph-up-arrow me-1"></i>分析儀表板</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="#" id="nav-users"><i class="bi bi-people-fill me-1"></i>使用者管理</a>
+                            <a class="nav-link" href="{{ url_for('admin_app.users') }}" id="nav-users"><i class="bi bi-people-fill me-1"></i>使用者管理</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('admin_app.line') }}" id="nav-line"><i class="bi bi-chat-left-text-fill me-1"></i>LINE操作管理</a>
                         </li>
                     </ul>
                     <ul class="navbar-nav ms-auto">
                         <li class="nav-item">
-                            <a class="nav-link" href="https://www.youtube.com/@bigdatantue" target="_blank"><i class="bi bi-youtube"></i> YouTube</a>
+                            <a class="nav-link" href="https://www.youtube.com/@codememaybe" target="_blank"><i class="bi bi-youtube"></i> YouTube</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="https://www.instagram.com/ntue.bigdata/" target="_blank"><i class="bi bi-instagram"></i> Instagram</a>
+                            <a class="nav-link" href="https://www.instagram.com/code.me.maybe/" target="_blank"><i class="bi bi-instagram"></i> Instagram</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="https://www.facebook.com/NTUEBIGDATAEDU" target="_blank"><i class="bi bi-facebook"></i> Facebook</a>
+                            <a class="nav-link" href="https://www.facebook.com/CODEMEMAYBE" target="_blank"><i class="bi bi-facebook"></i> Facebook</a>
                         </li>
                     </ul>
                 </div>
@@ -59,48 +67,80 @@
         </main>
     </div>
 
+    <!-- 通用確認 Modal -->
+    <div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="confirmModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="confirmModalLabel">
+                        <i class="bi bi-question-circle text-primary me-2"></i>
+                        確認操作
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="confirmModalBody">
+                    <p class="mb-0">您確定要執行此操作嗎？</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle me-1"></i>取消
+                    </button>
+                    <button type="button" class="btn btn-primary" id="confirmModalConfirm">
+                        <i class="bi bi-check-circle me-1"></i>確認
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 
-    <!-- Edit User Modal -->
-    <div class="modal fade" id="editUserModal" tabindex="-1" aria-labelledby="editUserModalLabel" aria-hidden="true">
+    <!-- 通用提示 Modal -->
+    <div class="modal fade" id="alertModal" tabindex="-1" aria-labelledby="alertModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="alertModalLabel">
+                        <i class="bi bi-info-circle text-info me-2"></i>
+                        提示
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="alertModalBody">
+                    <p class="mb-0">操作完成</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">
+                        <i class="bi bi-check me-1"></i>確定
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 通用編輯 Modal -->
+    <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="editUserModalLabel"><i class="bi bi-pencil-square me-2"></i>編輯使用者</h5>
+                    <h5 class="modal-title" id="editModalLabel">
+                        <i class="bi bi-pencil-square me-2"></i>
+                        編輯資料
+                    </h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <form id="editUserForm">
-                        <input type="hidden" id="editUserId">
-                        <div class="mb-3">
-                            <label for="editUserName" class="form-label">使用者名稱</label>
-                            <input type="text" class="form-control" id="editUserName" readonly>
-                        </div>
-                        <div class="mb-3">
-                            <label for="editUserIdField" class="form-label">User ID</label>
-                            <input type="text" class="form-control" id="editUserIdField" readonly>
-                        </div>
-                        <div class="mb-3">
-                            <label for="editYtChannel" class="form-label">YT名稱</label>
-                            <input type="text" class="form-control" id="editYtChannel">
-                        </div>
-                        <div class="mb-3">
-                            <label for="editYtLevel" class="form-label">YT會員等級</label>
-                            <select class="form-select" id="editYtLevel">
-                                <option value="0">無</option>
-                                <option value="1">等級 1 - 請老師喝杯水</option>
-                                <option value="2">等級 2 - 請老師吃便當</option>
-                                <option value="3">等級 3 - 請老師吃大餐</option>
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <label for="editJoinAt" class="form-label">註冊日期</label>
-                            <input type="text" class="form-control" id="editJoinAt" readonly>
+                    <form id="editForm">
+                        <div id="editFormFields">
+                            <!-- 動態表單欄位將在這裡插入 -->
                         </div>
                     </form>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
-                    <button type="button" class="btn btn-primary" id="saveUserBtn">儲存變更</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle me-1"></i>取消
+                    </button>
+                    <button type="button" class="btn btn-primary" id="saveEditBtn">
+                        <i class="bi bi-check-circle me-1"></i>儲存變更
+                    </button>
                 </div>
             </div>
         </div>

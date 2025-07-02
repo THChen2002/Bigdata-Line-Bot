@@ -1,0 +1,107 @@
+.modal-header {
+    background-color: #0d6efd;
+    color: white;
+    border-bottom: 1px solid #eaeaea;
+}
+
+.modal-title {
+    font-weight: 500;
+}
+
+.btn-close {
+    filter: invert(1) grayscale(100%) brightness(200%);
+}
+
+.modal-footer {
+    background-color: #f8f9fa;
+}
+
+.filter-panel {
+    background-color: #ffffff;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+    border: 1px solid #e9ecef;
+    display: none;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+}
+
+.filter-panel.show {
+    display: block;
+    animation: fadeIn 0.3s;
+}
+
+.filter-badge {
+    margin-right: 5px;
+    margin-bottom: 5px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    padding: 0.4em 0.8em;
+    display: inline-flex;
+    align-items: center;
+}
+
+.filter-badge i {
+    margin-left: 8px;
+}
+
+.table th {
+    font-weight: 600;
+    color: #495057;
+    cursor: pointer;
+    user-select: none;
+    background-color: #f8f9fa;
+}
+
+.table th:hover {
+    background-color: #e9ecef;
+}
+
+.table-hover > tbody > tr:hover > * {
+    --bs-table-accent-bg: #f1f3f5;
+}
+
+.sort-icon {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    margin-left: 5px;
+    color: #6c757d;
+}
+
+.badge {
+    font-weight: 500;
+    padding: 0.4em 0.7em;
+}
+
+.badge-yt-0 {
+    background-color: #e9ecef;
+    color: #495057;
+}
+
+.badge-yt-1 {
+    color: #0d6efd;
+    background-color: #cfe2ff;
+    border: 1px solid #b6d4fe;
+}
+
+.badge-yt-2 {
+    color: #198754;
+    background-color: #d1e7dd;
+    border: 1px solid #badbcc;
+}
+
+.badge-yt-3 {
+    color: #664d03;
+    background-color: #fff3cd;
+    border: 1px solid #ffecb5;
+}
+
+.btn-edit {
+    color: #0d6efd;
+    cursor: pointer;
+}
+
+.btn-edit:hover {
+    text-decoration: underline;
+}
