@@ -234,53 +234,68 @@ class RichMenuHelper:
             __class__.create_rich_menu_alias_(alias_id, rich_menu_id)
             return rich_menu_id
 
-#-----------------以下為設定rich menu的程式-----------------
-# 設定rich menu，並將alias id為page1的rich menu設為預設
-# with ApiClient(configuration) as api_client:
-#     line_bot_api = MessagingApi(api_client)
-#     richmenus = firebaseService.get_collection_data(DatabaseCollectionMap.RICH_MENU)
-#     for richmenu in richmenus:
-#         richmenu_id = RichMenuHelper.create_rich_menu_(richmenu.get('alias_id'))
-#         firebaseService.update_data(
-#             DatabaseCollectionMap.RICH_MENU,
-#             richmenu.get('alias_id'),
-#             {'richmenu_id': richmenu_id}
-#         )
-#         if richmenu.get('alias_id') == 'page1':
-#             line_bot_api.set_default_rich_menu(richmenu_id)
+    #-----------------以下為設定rich menu的程式-----------------
 
-#-------------------刪除所有rich menu的程式-------------------
-# with ApiClient(configuration) as api_client:
-#     line_bot_api = MessagingApi(api_client)
-#     richmenu_list = line_bot_api.get_rich_menu_list()
-#     richmenu_alias_list = line_bot_api.get_rich_menu_alias_list()
-#     for richmenu in richmenu_alias_list.aliases:
-#         line_bot_api.delete_rich_menu_alias(richmenu.rich_menu_alias_id)
-#     for richmenu in richmenu_list.richmenus:
-#         line_bot_api.delete_rich_menu(richmenu.rich_menu_id)
+    @staticmethod
+    def set_richmenu():
+        """
+        設定rich menu，並將alias id為page1的rich menu設為預設
+        """
+        with ApiClient(configuration) as api_client:
+            line_bot_api = MessagingApi(api_client)
+            richmenus = firebaseService.get_collection_data(DatabaseCollectionMap.RICH_MENU)
+            for richmenu in richmenus:
+                richmenu_id = RichMenuHelper.create_rich_menu_(richmenu.get('alias_id'))
+                firebaseService.update_data(
+                    DatabaseCollectionMap.RICH_MENU,
+                    richmenu.get('alias_id'),
+                    {'richmenu_id': richmenu_id}
+                )
+                if richmenu.get('alias_id') == 'page1':
+                    line_bot_api.set_default_rich_menu(richmenu_id)
 
-#-----------------根據YT會員等級設定rich menu-----------------
-# with ApiClient(configuration) as api_client:
-#     line_bot_api = MessagingApi(api_client)
-#     for level in range(1, 4):
-#         user_ids = [
-#             user.get('userId') for user in firebaseService.filter_data(
-#                 DatabaseCollectionMap.USER,
-#                 [('youtube.level', '==', level)]
-#             )
-#         ]
-#         rich_menu_id = firebaseService.get_data(
-#             DatabaseCollectionMap.RICH_MENU,
-#             f'page1_level{level}'
-#         ).get('richmenu_id')
+    @staticmethod
+    def delete_all_richmenu():
+        """
+        刪除所有圖文選單和Alias
+        """
+        with ApiClient(configuration) as api_client:
+            line_bot_api = MessagingApi(api_client)
+            richmenu_list = line_bot_api.get_rich_menu_list()
+            richmenu_alias_list = line_bot_api.get_rich_menu_alias_list()
+            for richmenu in richmenu_alias_list.aliases:
+                line_bot_api.delete_rich_menu_alias(richmenu.rich_menu_alias_id)
+            for richmenu in richmenu_list.richmenus:
+                line_bot_api.delete_rich_menu(richmenu.rich_menu_id)
 
-#         # 連結圖文選單到使用者
-#         line_bot_api.link_rich_menu_id_to_users(
-#             RichMenuBulkLinkRequest(
-#                 rich_menu_id=rich_menu_id,
-#                 user_ids=user_ids
-#             )
-#         )
+    def set_richmenu_by_youtube_level():
+        """
+        根據YT會員等級設定rich menu
+        """
+        with ApiClient(configuration) as api_client:
+            line_bot_api = MessagingApi(api_client)
+            for level in range(1, 4):
+                user_ids = [
+                    user.get('userId') for user in firebaseService.filter_data(
+                        DatabaseCollectionMap.USER,
+                        [('youtube.level', '==', level)]
+                    )
+                ]
+                if not user_ids:
+                    continue
+
+                rich_menu_id = firebaseService.get_data(
+                    DatabaseCollectionMap.RICH_MENU,
+                    f'page1_level{level}'
+                ).get('richmenu_id')
+
+                # 連結圖文選單到使用者
+                line_bot_api.link_rich_menu_id_to_users(
+                    RichMenuBulkLinkRequest(
+                        rich_menu_id=rich_menu_id,
+                        user_ids=user_ids
+                    )
+                )
 
 #         # 取消圖文選單連結使用者
 #         line_bot_api.unlink_rich_menu_id_from_user("Uxxxxxxx")

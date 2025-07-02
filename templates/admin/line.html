@@ -1,0 +1,188 @@
+{% extends 'admin/base.html' %}
+
+{% block title %}後台管理系統 - LINE操作管理{% endblock %}
+
+{% block head %}
+    <script src="{{ url_for('static', filename='js/admin/line.js') }}"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin/line.css') }}">
+{% endblock %}
+
+{% block content %}
+    <!-- LIFF Loading -->
+    <div id="liff-loading" class="d-flex justify-content-center align-items-center vh-100 flex-column">
+        <div class="spinner-border text-success" role="status"></div>
+        <p class="mt-3">正在驗證 LINE 登入，請稍候...</p>
+    </div>
+
+    <div id="mainContent" class="d-none">
+        <div class="container-fluid">
+            <!-- 頁面標題 -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <h1 class="h3 mb-0 text-dark">LINE 操作管理</h1>
+                </div>
+            </div>
+
+            <!-- 主要功能區塊 -->
+            <div class="row g-4">
+                <!-- 使用者管理 -->
+                <div class="col-lg-4 col-md-6">
+                    <div class="card h-100 border-0 shadow-sm">
+                        <div class="card-body p-4">
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="feature-icon feature-icon-primary me-3">
+                                    <i class="bi bi-people-fill" aria-hidden="true"></i>
+                                </div>
+                                <h5 class="card-title mb-0">使用者管理</h5>
+                            </div>
+                            <p class="card-text text-muted">管理 LINE 使用者資訊與權限</p>
+                            <button id="update-users-btn" type="button" class="btn btn-outline-primary feature-btn">
+                                <i class="bi bi-arrow-repeat me-2"></i>更新使用者資訊
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 圖文選單管理 -->
+                <div class="col-lg-4 col-md-6">
+                    <div class="card h-100 border-0 shadow-sm">
+                        <div class="card-body p-4">
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="feature-icon feature-icon-success me-3">
+                                    <i class="bi bi-grid-3x3-gap-fill" aria-hidden="true"></i>
+                                </div>
+                                <h5 class="card-title mb-0">圖文選單管理</h5>
+                            </div>
+                            <p class="card-text text-muted">設定與管理 LINE 圖文選單</p>
+                            <div class="d-grid gap-2">
+                                <button id="delete-all-richmenu-btn" type="button" class="btn btn-outline-danger feature-btn">
+                                    <i class="bi bi-trash me-2"></i>刪除所有圖文選單
+                                </button>
+                                <button id="update-richmenu-btn" type="button" class="btn btn-outline-success feature-btn">
+                                    <i class="bi bi-arrow-repeat me-2"></i>更新圖文選單
+                                </button>
+                                <button id="update-yt-richmenu-btn" type="button" class="btn btn-outline-warning feature-btn">
+                                    <i class="bi bi-arrow-repeat me-2"></i>更新 YT 會員圖文選單
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 訊息管理 -->
+                <div class="col-lg-4 col-md-6">
+                    <div class="card h-100 border-0 shadow-sm">
+                        <div class="card-body p-4">
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="feature-icon feature-icon-info me-3">
+                                    <i class="bi bi-chat-dots-fill" aria-hidden="true"></i>
+                                </div>
+                                <h5 class="card-title mb-0">訊息管理</h5>
+                            </div>
+                            <p class="card-text text-muted">管理推播訊息與自動回覆</p>
+                            <button class="btn btn-outline-info feature-btn" type="button" disabled>
+                                <i class="bi bi-gear me-2"></i>功能開發中
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 群組管理 -->
+                <div class="col-lg-4 col-md-6">
+                    <div class="card h-100 border-0 shadow-sm">
+                        <div class="card-body p-4">
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="feature-icon feature-icon-warning me-3">
+                                    <i class="bi bi-collection-fill" aria-hidden="true"></i>
+                                </div>
+                                <h5 class="card-title mb-0">群組管理</h5>
+                            </div>
+                            <p class="card-text text-muted">管理 LINE 群組與成員</p>
+                            <button class="btn btn-outline-warning feature-btn" type="button" disabled>
+                                <i class="bi bi-gear me-2"></i>功能開發中
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 數據分析 -->
+                <div class="col-lg-4 col-md-6">
+                    <div class="card h-100 border-0 shadow-sm">
+                        <div class="card-body p-4">
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="feature-icon feature-icon-danger me-3">
+                                    <i class="bi bi-graph-up" aria-hidden="true"></i>
+                                </div>
+                                <h5 class="card-title mb-0">數據分析</h5>
+                            </div>
+                            <p class="card-text text-muted">查看使用統計與分析報告</p>
+                            <button class="btn btn-outline-danger feature-btn" type="button" disabled>
+                                <i class="bi bi-gear me-2"></i>功能開發中
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 系統設定 -->
+                <div class="col-lg-4 col-md-6">
+                    <div class="card h-100 border-0 shadow-sm">
+                        <div class="card-body p-4">
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="feature-icon feature-icon-secondary me-3">
+                                    <i class="bi bi-gear-fill" aria-hidden="true"></i>
+                                </div>
+                                <h5 class="card-title mb-0">系統設定</h5>
+                            </div>
+                            <p class="card-text text-muted">LINE Bot 相關系統設定</p>
+                            <button class="btn btn-outline-secondary feature-btn" type="button" disabled>
+                                <i class="bi bi-gear me-2"></i>功能開發中
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 快速操作區 -->
+            <div class="row mt-5">
+                <div class="col-12">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-header bg-light border-0">
+                            <h5 class="mb-0">
+                                <i class="fas fa-bolt text-warning me-2"></i>
+                                快速操作
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row g-3">
+                                <div class="col-md-3">
+                                    <button class="btn btn-light w-100 py-3" disabled>
+                                        <i class="bi bi-broadcast me-2"></i>
+                                        發送推播
+                                    </button>
+                                </div>
+                                <div class="col-md-3">
+                                    <button class="btn btn-light w-100 py-3" disabled>
+                                        <i class="bi bi-download me-2"></i>
+                                        匯出資料
+                                    </button>
+                                </div>
+                                <div class="col-md-3">
+                                    <button class="btn btn-light w-100 py-3" disabled>
+                                        <i class="bi bi-shield-check me-2"></i>
+                                        權限管理
+                                    </button>
+                                </div>
+                                <div class="col-md-3">
+                                    <button class="btn btn-light w-100 py-3" disabled>
+                                        <i class="bi bi-clock-history me-2"></i>
+                                        操作記錄
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

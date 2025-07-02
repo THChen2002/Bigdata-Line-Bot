@@ -1,0 +1,105 @@
+{% extends 'admin/base.html' %}
+
+{% block title %}後台管理系統 - 使用者管理{% endblock %}
+
+{% block head %}
+    <script>
+        let usersData = JSON.parse('{{ users|tojson|safe }}');
+    </script>
+    <script src="{{ url_for('static', filename='js/admin/users.js') }}"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin/users.css') }}">
+{% endblock %}
+
+{% block content %}
+<!-- LIFF Loading -->
+<div id="liff-loading" class="d-flex justify-content-center align-items-center vh-100 flex-column">
+    <div class="spinner-border text-success" role="status"></div>
+    <p class="mt-3">正在驗證 LINE 登入，請稍候...</p>
+</div>
+
+<div id="mainContent" class="d-none">
+    <div id="users-view">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="mb-0">使用者管理</h2>
+        </div>
+        <div class="card">
+            <div class="card-body">
+                <!-- 搜尋功能 -->
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-search"></i></span>
+                            <input type="text" id="search-input" class="form-control" placeholder="搜尋使用者ID、名稱...">
+                        </div>
+                    </div>
+                    <div class="col-md-6 text-md-end">
+                        <div class="btn-group">
+                            <button type="button" class="btn btn-outline-secondary" id="filterButton">
+                                <i class="bi bi-funnel me-1"></i>篩選
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary" id="resetButton">
+                                <i class="bi bi-arrow-repeat me-1"></i>重置
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <!-- 篩選面板 -->
+                <div class="filter-panel" id="filterPanel">
+                    <div class="row">
+                        <div class="col-md-12 mb-3">
+                            <h6 class="mb-2">YT會員等級</h6>
+                            <div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="checkbox" id="level0" value="0">
+                                    <label class="form-check-label" for="level0">無</label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="checkbox" id="level1" value="1">
+                                    <label class="form-check-label" for="level1">請老師喝杯水</label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="checkbox" id="level2" value="2">
+                                    <label class="form-check-label" for="level2">請老師吃便當</label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="checkbox" id="level3" value="3">
+                                    <label class="form-check-label" for="level3">請老師吃大餐</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-12">
+                            <button type="button" class="btn btn-primary btn-sm" id="applyFilterBtn">套用篩選</button>
+                            <button type="button" class="btn btn-outline-secondary btn-sm" id="closeFilterBtn">關閉</button>
+                        </div>
+                    </div>
+                </div>
+                <!-- 已套用的篩選條件 -->
+                <div id="activeFilters" class="mb-3" style="display: none;">
+                    <strong>篩選條件: </strong>
+                    <div class="d-inline-flex flex-wrap" id="filterBadges">
+                    </div>
+                </div>
+                <!-- 使用者列表 -->
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead>
+                            <tr>
+                                <th data-sort="id">ID <span class="sort-icon"><i class="bi bi-sort-up"></i></span></th>
+                                <th data-sort="userId">User ID <span class="sort-icon"></span></th>
+                                <th data-sort="displayName">使用者名稱 <span class="sort-icon"></span></th>
+                                <th data-sort="YtChannel">YT名稱 <span class="sort-icon"></span></th>
+                                <th data-sort="ytLevel">YT會員等級 <span class="sort-icon"></span></th>
+                                <th data-sort="joinAt">加入日期 <span class="sort-icon"></span></th>
+                                <th>動作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="user-table-body">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
