@@ -30,6 +30,92 @@ $(document).ready(function() {
         confirmClass: 'btn-warning',
         onConfirm: () => callLineOperation('update_yt_richmenu')
     });
+    // 設定 Webhook 按鈕事件
+    $('#set-webhook-btn').on('click', function() {
+        // 取得現有 Webhook URL 並用通用編輯 Modal 顯示
+        $.get('/admin/line/webhook', function(data) {
+            showEditModal({
+                title: '設定 LINE Webhook URL',
+                icon: 'bi-link-45deg',
+                fields: [
+                    {
+                        id: 'webhook_url',
+                        label: 'Webhook URL',
+                        type: 'url',
+                        required: true,
+                        placeholder: 'https://xxxxx.ngrok-free.app/callback'
+                    }
+                ],
+                data: { webhook_url: data && data.url ? data.url : '' },
+                onSave: function(formData) {
+                    const url = formData.webhook_url;
+                    if (!url) {
+                        showToast('請輸入 Webhook URL', 'error');
+                        return;
+                    }
+                    $.ajax({
+                        url: '/admin/line/webhook',
+                        method: 'POST',
+                        contentType: 'application/json',
+                        data: JSON.stringify({ url }),
+                        success: function(response) {
+                            if (response.success) {
+                                showToast('Webhook URL 已儲存');
+                                $('#editModal').modal('hide');
+                            } else {
+                                showToast(response.message || '儲存失敗', 'error');
+                            }
+                        },
+                        error: function() {
+                            showToast('網路錯誤，請稍後再試', 'error');
+                        }
+                    });
+                }
+            });
+        });
+    });
+    
+    // 驗證 Webhook 按鈕事件
+    $('#test-webhook-btn').on('click', function() {
+        function showWebhookResultModal({success, msg, statusCode, reason, detail, timestamp}) {
+            let html = `<div class="alert alert-${success ? 'success' : 'danger'} mb-2">${msg}</div>`;
+            if (typeof statusCode !== 'undefined') html += `<div><b>狀態碼：</b>${statusCode}</div>`;
+            if (reason) html += `<div><b>原因：</b>${reason}</div>`;
+            $('#alertModalLabel').html('<i class="bi bi-patch-check me-2"></i>Webhook 驗證結果');
+            $('#alertModalBody').html(html);
+            $('#alertModal').modal('show');
+        }
+        $.ajax({
+            url: '/admin/line/webhook?action=test',
+            method: 'GET',
+            success: function(response) {
+                console.log('Webhook 測試結果:', response);
+                showWebhookResultModal({
+                    success: response.success,
+                    msg: response.success ? 'Webhook 驗證成功' : 'Webhook 驗證失敗',
+                    statusCode: response.statusCode,
+                    reason: response.reason
+                });
+            },
+            error: function(xhr) {
+                let r = xhr.responseJSON || {};
+                showWebhookResultModal({
+                    success: false,
+                    msg: r.message || 'Webhook 驗證失敗',
+                    statusCode: r.statusCode,
+                    reason: r.reason,
+                    detail: r.detail,
+                    timestamp: r.timestamp
+                });
+            }
+        });
+    });
+
+    // 更新 LIFF 網址按鈕事件
+    $('#update-liff-urls-btn').on('click', function() {
+        // 直接執行更新 LIFF 網址操作
+        callLineOperation('update_liff_urls');
+    });
 });
 
 // 統一的 LINE 操作 API 調用

@@ -214,10 +214,18 @@ function openEditModal(user) {
             applySearchAndFilter();
             // 發送修改的資料到後端
             $.ajax({
-                url: '/admin/update',
+                url: '/admin/line/operation',
                 method: 'POST',
                 contentType: 'application/json',
-                data: JSON.stringify({ userId, channel: newYtChannel, level: newYtLevel, joinAt }),
+                data: JSON.stringify({
+                    type: 'update_user',
+                    userId,
+                    youtube: {
+                        channel: newYtChannel,
+                        level: newYtLevel,
+                        joinAt
+                    }
+                }),
                 success: response => {
                     if (response.success) {
                         showToast("使用者資料已更新成功！");

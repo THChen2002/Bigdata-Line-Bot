@@ -68,6 +68,30 @@
                         </div>
                     </div>
                 </div>
+                
+                 <!-- 系統設定 -->
+                 <div class="col-lg-4 col-md-6">
+                    <div class="card h-100 border-0 shadow-sm">
+                        <div class="card-body p-4">
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="feature-icon feature-icon-secondary me-3">
+                                    <i class="bi bi-gear-fill" aria-hidden="true"></i>
+                                </div>
+                                <h5 class="card-title mb-0">系統設定</h5>
+                            </div>
+                            <p class="card-text text-muted">LINE Bot 相關系統設定 - Developing</p>
+                            <button id="set-webhook-btn" class="btn btn-outline-primary feature-btn mt-2" type="button">
+                                <i class="bi bi-link-45deg me-2"></i>設定 Webhook
+                            </button>
+                            <button id="test-webhook-btn" class="btn btn-outline-success feature-btn mt-2" type="button">
+                                <i class="bi bi-patch-check me-2"></i>驗證 Webhook
+                            </button>
+                            <button id="update-liff-urls-btn" class="btn btn-outline-info feature-btn mt-2" type="button">
+                                <i class="bi bi-globe me-2"></i>更新 LIFF 網址
+                            </button>
+                        </div>
+                    </div>
+                </div>
 
                 <!-- 訊息管理 -->
                 <div class="col-lg-4 col-md-6">
@@ -122,24 +146,6 @@
                         </div>
                     </div>
                 </div>
-
-                <!-- 系統設定 -->
-                <div class="col-lg-4 col-md-6">
-                    <div class="card h-100 border-0 shadow-sm">
-                        <div class="card-body p-4">
-                            <div class="d-flex align-items-center mb-3">
-                                <div class="feature-icon feature-icon-secondary me-3">
-                                    <i class="bi bi-gear-fill" aria-hidden="true"></i>
-                                </div>
-                                <h5 class="card-title mb-0">系統設定</h5>
-                            </div>
-                            <p class="card-text text-muted">LINE Bot 相關系統設定</p>
-                            <button class="btn btn-outline-secondary feature-btn" type="button" disabled>
-                                <i class="bi bi-gear me-2"></i>功能開發中
-                            </button>
-                        </div>
-                    </div>
-                </div>
             </div>
 
             <!-- 快速操作區 -->
@@ -181,6 +187,28 @@
                             </div>
                         </div>
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Webhook 設定 Modal -->
+    <div class="modal fade" id="webhookModal" tabindex="-1" aria-labelledby="webhookModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="webhookModalLabel">設定 LINE Webhook URL</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="webhook-url-input" class="form-label">Webhook URL</label>
+                        <input type="url" class="form-control" id="webhook-url-input" placeholder="https://example.com/webhook">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" id="save-webhook-btn">儲存</button>
                 </div>
             </div>
         </div>

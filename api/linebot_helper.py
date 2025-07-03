@@ -18,6 +18,7 @@ from linebot.v3.messaging import (
     QuickReplyItem,
     ShowLoadingAnimationRequest,
     ValidateMessageRequest,
+    SetWebhookEndpointRequest,
     RichMenuBulkLinkRequest,
     RichMenuBulkUnlinkRequest,
     RichMenuBatchRequest,
@@ -181,6 +182,44 @@ class LineBotHelper:
         else:
             raise ValueError('Invalid action type')
 
+class WebhookHelper:
+    @staticmethod
+    def get_webhook_url():
+        """
+        取得 LINE Bot 的 Webhook URL
+        """
+        with ApiClient(configuration) as api_client:
+            line_bot_api = MessagingApi(api_client)
+            response = line_bot_api.get_webhook_endpoint()
+            return response.endpoint
+    
+    @staticmethod
+    def set_webhook_url(webhook_url: str):
+        """
+        設定 LINE Bot 的 Webhook URL
+        """
+        with ApiClient(configuration) as api_client:
+            line_bot_api = MessagingApi(api_client)
+            try:
+                line_bot_api.set_webhook_endpoint(
+                    SetWebhookEndpointRequest(
+                        endpoint=webhook_url
+                    )
+                )
+            except ApiException as e:
+                raise ValueError(f"Failed to set webhook URL: {e}")
+    
+    @staticmethod
+    def test_webhook_url():
+        """
+        測試 LINE Bot 的 Webhook URL 是否有效
+        """
+        with ApiClient(configuration) as api_client:
+            line_bot_api = MessagingApi(api_client)
+            try:
+                return line_bot_api.test_webhook_endpoint().to_dict()
+            except ApiException as e:
+                raise ValueError(f"Webhook URL test failed: {e}")
 
 class RichMenuHelper:
     @staticmethod
