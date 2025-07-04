@@ -23,11 +23,12 @@ class Singleton(type):
 class Config(metaclass=Singleton):
     def __init__(self):
         self._load_environment_variables()
-        self._check_env()
-        self._line_bot_init()
-        self._feature_init()
+        self._check_required_env_vars()
+        self._initialize_line_bot()
+        self._initialize_features()
 
     def _load_environment_variables(self):
+        """ 載入環境變數 """
         self.CHANNEL_SECRET = os.getenv('CHANNEL_SECRET')
         self.CHANNEL_ACCESS_TOKEN = os.getenv('CHANNEL_ACCESS_TOKEN')
         self.SPREADSHEET_URL = os.getenv('SPREADSHEET_URL')
@@ -38,7 +39,8 @@ class Config(metaclass=Singleton):
         self.LIFF_ID_FULL = os.getenv('LIFF_ID_FULL')
         self.LIFF_ID_ADMIN = os.getenv('LIFF_ID_ADMIN')
 
-    def _check_env(self):
+    def _check_required_env_vars(self):
+        """檢查必要的環境變數"""
         required_vars = [
             'CHANNEL_SECRET', 'CHANNEL_ACCESS_TOKEN', 'GDRIVE_API_CREDENTIALS',
             'SPREADSHEET_URL', 'FIREBASE_CREDENTIALS', 'LIFF_ID_COMPACT',
@@ -51,14 +53,15 @@ class Config(metaclass=Singleton):
             print(f"Please set the following environment variables: {', '.join(missing_vars)}")
             sys.exit(1)
 
-    def _line_bot_init(self):
+    def _initialize_line_bot(self):
         """初始化LINE Bot相關物件"""
         self.handler = WebhookHandler(self.CHANNEL_SECRET)
         self.configuration = Configuration(access_token=self.CHANNEL_ACCESS_TOKEN)
         # self.spreadsheetService = SpreadsheetService(pygsheets.authorize(service_account_env_var='GDRIVE_API_CREDENTIALS'), self.SPREADSHEET_URL)
         self.firebaseService = FireBaseService(json.loads(self.FIREBASE_CREDENTIALS))
     
-    def _feature_init(self):
+    def _initialize_features(self):
+        """初始化功能狀態"""
         self.feature = {
             'menu': FeatureStatus.ENABLE,
             'setting': FeatureStatus.ENABLE,
@@ -71,3 +74,10 @@ class Config(metaclass=Singleton):
             'activity': FeatureStatus.DISABLE,
             'quiz': FeatureStatus.ENABLE
         }
+
+# 創建全域配置
+config = Config()
+
+def get_config() -> Config:
+    """獲取設定實例"""
+    return config

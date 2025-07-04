@@ -1,10 +1,10 @@
 from abc import ABC, abstractmethod
 from typing import Dict, Type, Optional
-from config import Config
+from config import Config, get_config
 from api.firebase import FireBaseService
 
 class Feature(ABC):
-    config: Config = Config()
+    config: Config = get_config()
     firebaseService: FireBaseService = config.firebaseService
 
     @abstractmethod

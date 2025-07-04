@@ -1,0 +1,87 @@
+{% extends 'app/base.html' %}
+
+{% block title %}課程列表{% endblock %}
+
+{% block head %}
+<link href="{{ url_for('static', filename='css/course_list.css') }}" rel="stylesheet" type="text/css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="{{ url_for('static', filename='js/app/course_list.js') }}"></script>
+{% endblock %}
+
+{% block content %}
+
+<section class="p-5 bg-white mx-5">
+    <div class="container">
+        <!-- Modified title and breadcrumb layout -->
+        <div class="row mb-4">
+            <div class="col-md-8">
+                <h2 class="section-title mb-0">課程列表</h2>
+            </div>
+            <div class="col-md-4">
+                <nav aria-label="breadcrumb" class="breadcrumb-nav text-md-end">
+                    <ol class="breadcrumb justify-content-md-end mb-0">
+                        <li class="breadcrumb-item"><a href="{{ url_for('index') }}"><i class="fas fa-home"></i> 首頁</a></li>
+                        <li class="breadcrumb-item active" aria-current="page"><i class="fas fa-book"></i> 所有課程</li>
+                    </ol>
+                </nav>
+            </div>
+        </div>
+        
+        <!-- 課程類別過濾器 -->
+        <div class="filter-section mb-4">
+            <h5 class="mb-3"><i class="fas fa-filter"></i> 依類別篩選</h5>
+            <div class="d-flex flex-wrap gap-2" id="categoryFilter">
+                <span class="badge rounded-pill bg-primary px-3 py-2 category-pill active" data-category="all">
+                    全部課程
+                </span>
+                <span class="badge rounded-pill bg-secondary px-3 py-2 category-pill" data-category="Physical">
+                    <i class="fas fa-chalkboard-teacher"></i> 實體課程
+                </span>
+                <span class="badge rounded-pill bg-secondary px-3 py-2 category-pill" data-category="education">
+                    <i class="fas fa-user-graduate"></i> 教育版註冊
+                </span>
+                <span class="badge rounded-pill bg-secondary px-3 py-2 category-pill" data-category="Install">
+                    <i class="fas fa-download"></i> 程式安裝教學
+                </span>
+                <span class="badge rounded-pill bg-secondary px-3 py-2 category-pill" data-category="python">
+                    <i class="fab fa-python"></i> python初學小教室
+                </span>
+                <span class="badge rounded-pill bg-secondary px-3 py-2 category-pill" data-category="n8n">
+                    <i class="fas fa-cogs"></i> n8n
+                </span>
+                <span class="badge rounded-pill bg-secondary px-3 py-2 category-pill" data-category="AI LINE Bot">
+                    <i class="fas fa-robot"></i> AI LINE Bot練功坊
+                </span>
+                <span class="badge rounded-pill bg-secondary px-3 py-2 category-pill" data-category="LINE Bot Advance">
+                    <i class="fab fa-line"></i> LINE Bot Advance
+                </span>
+            </div>
+        </div>
+        
+        <div class="row" id="courseContainer">
+            {% for course in courses %}
+            <div class="col-md-4 mb-5 course-card" data-category="{{ course.category.name }}">
+                <div class="card">
+                    {% if course.image %}
+                    <img src="{{ course.image.url }}" class="card-img-top" alt="{{ course.title }}">
+                    {% endif %}
+                    <div class="card-body d-flex flex-column">
+                        <h5 class="card-title">{{ course.title }}</h5>
+                        <p class="card-text text-muted">{{ course.description | truncate(100) }}</p>
+                        <a href="{{ url_for('course', course_id=course.id) }}" class="btn btn-primary mt-auto">查看詳情</a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center mt-4">
+            <nav>
+                <ul class="pagination mb-0"></ul>
+            </nav>
+            <div id="pagination-info"></div>
+        </div>
+    </div>
+</section>
+{% endblock %}

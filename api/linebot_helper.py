@@ -1,4 +1,4 @@
-from config import Config
+from config import get_config
 from map import DatabaseCollectionMap
 from linebot.v3.messaging import (
     ApiClient,
@@ -33,7 +33,7 @@ import re
 import pytz
 from datetime import datetime
 
-config = Config()
+config = get_config()
 configuration = config.configuration
 firebaseService = config.firebaseService
 

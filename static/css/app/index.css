@@ -1,0 +1,91 @@
+:root {
+    --primary-color: #4e73df;
+    --secondary-color: #2e59d9;
+    --accent-color: #f6c23e;
+    --dark-color: #9295a6;
+    --light-color: #f8f9fc;
+}
+
+/* ===== Hero 區塊 ===== */
+.hero-section {
+    background: linear-gradient(135deg, #f5f7ff 0%, #e3e9ff 100%);
+    padding: 6rem 0;
+}
+
+@media (max-width: 768px) {
+    .hero-section {
+        padding: 3rem 1rem;
+        text-align: center;
+    }
+}
+
+/* ===== 按鈕樣式 ===== */
+.btn-outline-primary {
+    color: var(--primary-color);
+    border-color: var(--primary-color);
+    transition: all 0.3s ease;
+}
+
+.btn-outline-primary:hover {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.hero-section .btn-primary {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+    transition: all 0.3s ease;
+}
+
+.hero-section .btn-primary:hover {
+    background-color: var(--secondary-color);
+    border-color: var(--secondary-color);
+}
+
+/* ===== carousel 區塊 ===== */
+.carousel-indicators [data-bs-target] {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background-color: #ccc;
+    opacity: 1;
+    margin: 0 6px;
+    transition: background-color 0.3s;
+}
+
+.carousel-indicators .active {
+    background-color: var(--primary-color);
+}
+
+.carousel-item .card {
+    border: none;
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.carousel-item .card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+}
+
+.section-title {
+    position: relative;
+    margin-bottom: 2rem;
+    font-weight: 700;
+    color: var(--dark-color);
+}
+
+.section-title::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: -10px;
+    width: 50px; /* 線條長度可調整 */
+    height: 3px;
+    background-color: var(--primary-color);
+    border-radius: 2px;
+}
+
+#news-section {
+    padding-top: 6rem;
+    padding-bottom: 6rem;
+}

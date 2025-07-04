@@ -1,0 +1,107 @@
+{% extends 'app/base.html' %}
+
+{% block title %}{{ course.title }}{% endblock %}
+
+{% block content %}
+<link href="{{ url_for('static', filename='css/course.css') }}" rel="stylesheet" type="text/css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+<div class="container my-5">
+  <!-- Modified title and breadcrumb layout -->
+  <div class="row mb-4">
+    <div class="col-md-8">
+      <h1 class="fw-bold mb-0">{{ course.title }}</h1>
+    </div>
+    <div class="col-md-4">
+      <nav aria-label="breadcrumb" class="breadcrumb-nav text-md-end">
+        <ol class="breadcrumb justify-content-md-end mb-0">
+          <li class="breadcrumb-item"><a href="{{ url_for('index') }}"><i class="fas fa-home"></i> 首頁</a></li>
+          <li class="breadcrumb-item"><a href="{{ url_for('course_list') }}"><i class="fas fa-book"></i> 所有課程</a></li>
+          <li class="breadcrumb-item">
+            <a href="{{ url_for('course_list') }}?category={{ course.category.name }}">
+                <!-- 可以顯示的不同標籤 -->
+                <!-- <i class="fas fa-chalkboard-teacher"></i>
+                <i class="fas fa-user-graduate"></i>
+                <i class="fas fa-download"></i>
+                <i class="fab fa-python"></i>
+                <i class="fas fa-cogs"></i>
+                <i class="fas fa-robot"></i>
+                <i class="fab fa-line"></i>
+                <i class="fas fa-folder"></i> -->
+            </a>
+          </li>
+          <li class="breadcrumb-item active" aria-current="page">{{ course.title }}</li>
+        </ol>
+      </nav>
+    </div>
+  </div>
+
+  <!-- 課程主圖與標題 -->
+  <div class="row align-items-center mb-5">
+    <div class="col-md-6">
+      {% if course.image %}
+        <img src="{{ course.image.url }}" class="img-fluid rounded shadow" alt="{{ course.title }}">
+      {% else %}
+        <img src="{{ url_for('static', filename='default_course.jpg') }}" class="img-fluid rounded shadow" alt="Default image">
+      {% endif %}
+    </div>
+    <div class="col-md-6">
+      <div class="course-info">
+        
+        <!-- 移到外面，所有課程都顯示這些基本資訊 -->
+        <div class="course-meta mb-4">
+          <div class="row">
+            <div class="col-12 mb-3">
+              <i class="fas fa-folder-open text-muted me-2"></i>
+              <span class="text-muted">類別:</span> {{ course.category.name }}
+            </div>
+            
+            <!-- Physical課程特有資訊 -->
+            {% if course.category.name == "Physical" %}
+              <div class="col-md-6 mb-3">
+                <i class="far fa-calendar-alt text-muted me-2"></i>
+                <span class="text-muted">開課時間:</span> {{ course.course_start_datetime|datetimeformat }}
+              </div>
+              <div class="col-md-6 mb-3">
+                <i class="fas fa-calendar-times text-muted me-2"></i>
+                <span class="text-muted">結束日期:</span> {{ course.course_end_date|dateformat }}
+              </div>
+              <div class="col-md-6 mb-3">
+                <i class="fas fa-users text-muted me-2"></i>
+                <span class="text-muted">名額上限:</span> {{ course.max_people }} 人
+              </div>
+              <div class="col-md-6 mb-3">
+                <i class="fas fa-dollar-sign text-muted me-2"></i>
+                <span class="text-muted">學費:</span> {{ course.tuition_fee }} 元
+              </div>
+            {% endif %}
+          </div>
+        </div>
+        
+        {% if course.apply_url %}
+          <a href="{{ course.apply_url }}" class="btn btn-primary btn-lg" target="_blank">
+            <i class="fas fa-sign-in-alt me-2"></i>立即報名
+          </a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- 課程簡介 -->
+  <div class="mb-5">
+    <h3 class="fw-bold mb-3">課程簡介</h3>
+    <p class="fs-5">{{ course.description|safe }}</p>
+  </div>
+
+  <!-- 課程影片 -->
+  {% if course.youtube_url %}
+    <div class="mb-5">
+      <h4 class="fw-bold mb-3">📽️ 課程介紹影片</h4>
+      <div class="ratio ratio-16x9">
+        <iframe src="{{ course.youtube_url }}" frameborder="0" allowfullscreen></iframe>
+      </div>
+    </div>
+  {% endif %}
+</div>
+
+{% endblock %}
