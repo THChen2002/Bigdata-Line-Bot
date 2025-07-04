@@ -1,4 +1,4 @@
-from config import Config
+from config import get_config
 from map import DatabaseCollectionMap, Permission, LIFF
 from flask import Blueprint, request, render_template, jsonify
 from api.linebot_helper import LineBotHelper, RichMenuHelper, WebhookHelper
@@ -6,11 +6,11 @@ from api.oauth_helper import OauthHelper
 from api.liff_helper import LiffHelper
 from linebot.v3.messaging import TextMessage
 from urllib.parse import urlparse
-import traceback
+from utils.error_handler import handle_exception
 
 admin_app = Blueprint('admin_app', __name__)
 
-config = Config()
+config = get_config()
 firebaseService = config.firebaseService
 
 @admin_app.route('/', methods=['GET'])
@@ -81,17 +81,7 @@ def line_operation():
         return jsonify(result)
         
     except Exception as e:
-        error_message = ''.join(traceback.format_exception(None, e, e.__traceback__))
-        # 發送錯誤訊息給管理員
-        admin_users = firebaseService.filter_data(
-            DatabaseCollectionMap.USER, [('permission', '==', Permission.ADMIN)]
-        )
-        if admin_users:
-            LineBotHelper.push_message(
-                admin_users[0]['userId'],
-                [TextMessage(text=f"LINE操作錯誤: {error_message}")]
-            )
-        return jsonify({'success': False, 'message': '操作失敗，請聯繫系統管理員！'})
+        return handle_exception(e, admin_notification=True, return_json=True)
 
 @admin_app.route('/line/webhook', methods=['GET', 'POST'])
 def webhook_config():
@@ -135,14 +125,7 @@ def handle_update_user(data):
         firebaseService.update_data(DatabaseCollectionMap.USER, user_id, {'youtube': youtube_data})
         return {'success': True, 'message': '使用者資訊已更新'}
     except Exception as e:
-        error_message = ''.join(traceback.format_exception(None, e, e.__traceback__))
-        LineBotHelper.push_message(
-            firebaseService.filter_data(
-                DatabaseCollectionMap.USER, [('permission', '==', Permission.ADMIN)]
-            )[0]['userId'],
-            [TextMessage(text=error_message)]
-        )
-        return {'success': False, 'message': '發生錯誤，請聯繫系統管理員！'}
+        return handle_exception(e, admin_notification=True, return_json=True)
 
 def handle_update_users():
     """處理更新使用者資訊的操作"""
@@ -157,17 +140,7 @@ def handle_update_users():
             'message': '使用者資訊更新成功'
         }
     except Exception as e:
-        error_message = ''.join(traceback.format_exception(None, e, e.__traceback__))
-        LineBotHelper.push_message(
-            firebaseService.filter_data(
-                DatabaseCollectionMap.USER, [('permission', '==', Permission.ADMIN)]
-            )[0]['userId'],
-            [TextMessage(text=error_message)]
-        )
-        return {
-            'success': False,
-            'message': '更新使用者資訊失敗，請聯繫系統管理員！'
-        }
+        return handle_exception(e, admin_notification=True, return_json=True)
     
 def handle_delete_all_richmenu():
     """處理刪除所有圖文選單的操作"""
