@@ -13,10 +13,14 @@ class FireBaseService:
         self.db = firestore.client()
         self.callback_done = threading.Event()
 
+    def list_collections(self):
+        """取得所有 collection 名稱"""
+        return [c.id for c in self.db.collections()]
+
     def get_collection_data(self, collection):
         """取得集合所有資料"""
         docs = self.db.collection(collection).stream()
-        return [doc.to_dict() for doc in docs]
+        return [{'_id': doc.id, **doc.to_dict()} for doc in docs]
 
     def get_data(self, collection, doc_id):
         """取得資料"""
@@ -49,7 +53,7 @@ class FireBaseService:
         if limit:
             collection_ref = collection_ref.limit(limit)
         docs = collection_ref.stream()
-        return [doc.to_dict() for doc in docs]
+        return [{'_id': doc.id, **doc.to_dict()} for doc in docs]
     
     def get_aggregate_count(self, collection, conditions):
         """

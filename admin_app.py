@@ -53,6 +53,17 @@ def line():
     admin_user_ids = [user.get('userId') for user in admin_users]
     return render_template('admin/line.html', **locals())
 
+@admin_app.route('/firebase', methods=['GET'])
+def firebase():
+    liff_id = LIFF.ADMIN.value
+    # 驗證登入使用者的權限
+    admin_users = firebaseService.filter_data(
+        DatabaseCollectionMap.USER, [('permission', '==', Permission.ADMIN)]
+    )
+    admin_user_ids = [user.get('userId') for user in admin_users]
+    collection_names = firebaseService.list_collections()
+    return render_template('admin/firebase.html', **locals())
+
 @admin_app.route('/line/operation', methods=['POST'])
 def line_operation():
     try:
@@ -115,6 +126,70 @@ def webhook_config():
             return jsonify({'success': True})
         except Exception as e:
             return jsonify({'success': False, 'message': str(e)})
+
+@admin_app.route('/api/firebase/query', methods=['POST'])
+def api_firebase_query():
+    try:
+        data = request.get_json()
+        collection = data.get('collection')
+        conditions = data.get('conditions', [])
+        limit = data.get('limit')
+        order_by = tuple(data.get('order_by')) if data.get('order_by') else None
+        if not collection:
+            return jsonify({'success': False, 'message': '缺少 collection 名稱'})
+        if collection not in firebaseService.list_collections():
+            return jsonify({'success': False, 'message': f'找不到 collection: {collection}'})
+        # 將 conditions 轉為 Firestore 查詢格式
+        conds = [(c['field'], c['op'], c['value']) for c in conditions if c.get('field')]
+        docs = firebaseService.filter_data(collection, conds, order_by=order_by, limit=limit)
+        result = [{'_id': doc.get('_id'), 'data': doc} for doc in docs]
+        return jsonify({'success': True, 'data': result})
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)})
+
+@admin_app.route('/api/firebase/update', methods=['POST'])
+def api_firebase_update():
+    try:
+        data = request.get_json()
+        collection = data.get('collection')
+        doc_id = data.get('docId')
+        update_data = data.get('data')
+        if not collection or not doc_id or not update_data:
+            return jsonify({'success': False, 'message': '缺少參數'})
+        if collection not in firebaseService.list_collections():
+            return jsonify({'success': False, 'message': f'找不到 collection: {collection}'})
+        firebaseService.update_data(collection, doc_id, update_data)
+        return jsonify({'success': True})
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)})
+
+@admin_app.route('/api/firebase/delete', methods=['POST'])
+def api_firebase_delete():
+    try:
+        data = request.get_json()
+        collection = data.get('collection')
+        doc_id = data.get('docId')
+        if not collection or not doc_id:
+            return jsonify({'success': False, 'message': '缺少參數'})
+        if collection not in firebaseService.list_collections():
+            return jsonify({'success': False, 'message': f'找不到 collection: {collection}'})
+        firebaseService.delete_data(collection, doc_id)
+        return jsonify({'success': True})
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)})
+
+@admin_app.route('/api/firebase/fields', methods=['GET'])
+def api_firebase_fields():
+    collection = request.args.get('collection')
+    if collection not in firebaseService.list_collections():
+        return jsonify({'success': False, 'fields': []})
+    docs = firebaseService.get_collection_data(collection)
+    if not docs:
+        return jsonify({'success': True, 'fields': []})
+    field_set = set(docs[0].keys())
+    field_set.discard('_id')
+
+    return jsonify({'success': True, 'fields': list(field_set)})
 
 def handle_update_user(data):
     try:
