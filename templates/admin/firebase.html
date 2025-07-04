@@ -1,0 +1,96 @@
+{% extends "admin/base.html" %}
+{% block title %}Firebase 資料管理{% endblock %}
+
+{% block head %}
+<script>
+  var allCollections = JSON.parse('{{ collection_names|tojson|safe }}')
+</script>
+<script src="{{ url_for('static', filename='js/admin/firebase.js') }}"></script>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-database-fill me-2"></i>Firebase 資料管理</h2>
+</div>
+
+<!-- 查詢區（多條件組合） -->
+<form class="row g-3 mb-4" id="queryForm" autocomplete="off">
+    <div class="col-md-3">
+        <label for="collectionInput" class="form-label">Collection 名稱</label>
+        <input type="text" class="form-control" id="collectionInput" placeholder="例如：users" required autocomplete="off">
+        <div id="collection-autocomplete" style="position:relative;"></div>
+    </div>
+    <div class="col-md-3">
+        <label for="orderFieldInput" class="form-label">排序欄位</label>
+        <input type="text" class="form-control" id="orderFieldInput" placeholder="請輸入欄位名稱" autocomplete="off">
+        <div id="orderfield-autocomplete" style="position:relative;"></div>
+    </div>
+    <div class="col-md-2">
+        <label for="orderDirectionInput" class="form-label">排序方式</label>
+        <select class="form-select" id="orderDirectionInput">
+            <option value="asc">遞增</option>
+            <option value="desc">遞減</option>
+        </select>
+    </div>
+    <div class="col-md-2">
+        <label for="limitInput" class="form-label">Limit</label>
+        <input type="number" class="form-control" id="limitInput" placeholder="100">
+    </div>
+    <div class="col-md-2 d-flex align-items-end">
+        <button type="submit" class="btn btn-primary w-100">
+            <i class="bi bi-search me-1"></i>查詢
+        </button>
+    </div>
+    <div class="w-100"></div>
+    <div class="col-12" id="query-conditions-area">
+        <div class="row g-2 align-items-center mb-2 query-condition-row">
+            <div class="col-md-3">
+                <input type="text" class="form-control condition-field" placeholder="欄位名稱">
+            </div>
+            <div class="col-md-2">
+                <select class="form-select condition-op">
+                    <option value="==">==</option>
+                    <option value=">">&gt;</option>
+                    <option value=">=">&gt;=</option>
+                    <option value="<">&lt;</option>
+                    <option value="<=">&lt;=</option>
+                    <option value="!=">!=</option>
+                    <option value="in">in</option>
+                    <option value="not-in">not-in</option>
+                    <option value="array_contains">array_contains</option>
+                    <option value="array_contains_any">array_contains_any</option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <input type="text" class="form-control condition-value" placeholder="請輸入值">
+            </div>
+            <div class="col-md-1">
+                <button type="button" class="btn btn-outline-danger btn-sm btn-remove-condition" title="移除條件">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 mb-2">
+        <button type="button" class="btn btn-outline-primary btn-sm" id="addConditionBtn"><i class="bi bi-plus-circle"></i> 新增指定條件</button>
+    </div>
+</form>
+
+<!-- 資料表格 -->
+<div class="table-responsive">
+    <table class="table table-bordered align-middle" id="firebaseTable">
+        <thead class="table-light">
+            <tr>
+                <th>Document ID</th>
+                <th>資料內容</th>
+                <th style="width: 15%;text-align:center;">操作</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td colspan="3" class="text-center text-muted">請先查詢資料</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+{% endblock %} 
