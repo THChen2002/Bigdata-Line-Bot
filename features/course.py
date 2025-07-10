@@ -1,4 +1,5 @@
 from .base import Feature, register_feature
+from utils.utils import replace_variable
 from linebot.v3.messaging import (
     TextMessage,
     FlexMessage,
@@ -76,7 +77,7 @@ class Course(Feature):
             for course_record in df_merged.to_dict(orient='records'):
                 course_id = course_record['course_id']
                 variable_dict = { f"{key}{course_id}": course_record[key] for key in ['status', 'category', 'semester', 'color'] }
-                line_flex_template = LineBotHelper.replace_variable(line_flex_template, variable_dict)
+                line_flex_template = replace_variable(line_flex_template, variable_dict)
 
             # 建立替換學分數據的字典
             completed_required_credit = df_merged[(df_merged['type'] == '必修') & df_merged['pass']]['credit'].sum()
@@ -94,7 +95,7 @@ class Course(Feature):
                 'color': color
             }
 
-            line_flex_str = LineBotHelper.replace_variable(line_flex_template, credits_summary)
+            line_flex_str = replace_variable(line_flex_template, credits_summary)
             return LineBotHelper.reply_message(event, [FlexMessage(alt_text='修課進度', contents=FlexContainer.from_json(line_flex_str))])
             
         else:
@@ -110,7 +111,7 @@ class Course(Feature):
                     DatabaseCollectionMap.LINE_FLEX,
                     "course"
                 ).get('detail')
-                line_flex_str = LineBotHelper.replace_variable(line_flex_template, course)
+                line_flex_str = replace_variable(line_flex_template, course)
                 return LineBotHelper.reply_message(event, [FlexMessage(alt_text='詳細說明', contents=FlexContainer.from_json(line_flex_str))])
             
             # 否則如果有course_category，則回傳該類別的課程資訊
@@ -155,7 +156,7 @@ class Course(Feature):
                     "course"
                 ).get("category")
                 for i, text in enumerate(quick_reply_data.get('actions')):
-                    quick_reply_data.get('actions')[i] = LineBotHelper.replace_variable(text, params)
+                    quick_reply_data.get('actions')[i] = replace_variable(text, params)
                 return LineBotHelper.reply_message(event, [TextMessage(text=quick_reply_data.get('text'), quick_reply=QuickReplyHelper.create_quick_reply(quick_reply_data.get('actions')))])
     
     def __get_study_status(self, row):

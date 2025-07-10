@@ -1,9 +1,7 @@
 import firebase_admin
-from firebase_admin import credentials
-from firebase_admin import firestore
+from firebase_admin import credentials, firestore
 from google.cloud.firestore_v1.base_query import FieldFilter
-from google.cloud.firestore_v1 import query
-from google.cloud.firestore_v1 import aggregation
+from google.cloud.firestore_v1 import query, aggregation
 import threading
 
 class FireBaseService:

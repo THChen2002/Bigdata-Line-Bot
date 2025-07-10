@@ -17,7 +17,7 @@ function initializeLiff(liffId) {
             liff.getProfile().then(profile => {
                 const userId = profile.userId;
                 if (adminUsers.includes(userId)) {
-                    $('#liff-loading').addClass('d-none');
+                    $('#liffLoading').addClass('d-none');
                     $('#mainContent').removeClass('d-none');
                 } else {
                     window.location.href = '/forbidden';
@@ -281,7 +281,6 @@ function bindAutocomplete($input, dataList, dropdownId) {
     });
 }
 
-// jQuery ready
 $(document).ready(() => {
     initializeLiff(liffId);
 });

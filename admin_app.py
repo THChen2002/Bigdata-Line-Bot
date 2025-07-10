@@ -4,7 +4,6 @@ from flask import Blueprint, request, render_template, jsonify
 from api.linebot_helper import LineBotHelper, RichMenuHelper, WebhookHelper
 from api.oauth_helper import OauthHelper
 from api.liff_helper import LiffHelper
-from linebot.v3.messaging import TextMessage
 from urllib.parse import urlparse
 from utils.error_handler import handle_exception
 
@@ -13,9 +12,22 @@ admin_app = Blueprint('admin_app', __name__)
 config = get_config()
 firebaseService = config.firebaseService
 
+def get_admin_context():
+    """取得管理員頁面的共用上下文"""
+    liff_id = LIFF.ADMIN.value
+    admin_users = firebaseService.filter_data(
+        DatabaseCollectionMap.USER, [('permission', '==', Permission.ADMIN)]
+    )
+    admin_user_ids = [user.get('userId') for user in admin_users]
+    return {
+        'liff_id': liff_id,
+        'admin_users': admin_users,
+        'admin_user_ids': admin_user_ids
+    }
+
 @admin_app.route('/', methods=['GET'])
 def admin():
-    liff_id = LIFF.ADMIN.value
+    context = get_admin_context()
     # 取得各等級人數，保證每個 key 都有值
     level_counts = {i: 0 for i in range(4)}
     for level in [0, 1, 2, 3]:
@@ -23,46 +35,27 @@ def admin():
             DatabaseCollectionMap.USER,
             [('youtube.level', '==', level)]
         ))
-    # 驗證登入使用者的權限
-    admin_users = firebaseService.filter_data(
-        DatabaseCollectionMap.USER, [('permission', '==', 4)]
-    )
-    admin_user_ids = [user.get('userId') for user in admin_users]
-    return render_template('admin/index.html', **locals())
+    return render_template('admin/index.html', **context)
 
 @admin_app.route('/users', methods=['GET'])
 def users():
-    liff_id = LIFF.ADMIN.value
-    users = firebaseService.get_collection_data(DatabaseCollectionMap.USER)
-    # 驗證登入使用者的權限
-    admin_users = firebaseService.filter_data(
-        DatabaseCollectionMap.USER, [('permission', '==', Permission.ADMIN)]
-    )
-    admin_user_ids = [user.get('userId') for user in admin_users]
-    for user in users:
+    context = get_admin_context()
+    context['user'] = firebaseService.get_collection_data(DatabaseCollectionMap.USER)
+
+    for user in context['user']:
         user.pop('statusMessage', None)
-    return render_template('admin/users.html', **locals())
+    return render_template('admin/users.html', **context)
 
 @admin_app.route('/line', methods=['GET'])
 def line():
-    liff_id = LIFF.ADMIN.value
-    # 驗證登入使用者的權限
-    admin_users = firebaseService.filter_data(
-        DatabaseCollectionMap.USER, [('permission', '==', Permission.ADMIN)]
-    )
-    admin_user_ids = [user.get('userId') for user in admin_users]
-    return render_template('admin/line.html', **locals())
+    context = get_admin_context()
+    return render_template('admin/line.html', **context)
 
 @admin_app.route('/firebase', methods=['GET'])
 def firebase():
-    liff_id = LIFF.ADMIN.value
-    # 驗證登入使用者的權限
-    admin_users = firebaseService.filter_data(
-        DatabaseCollectionMap.USER, [('permission', '==', Permission.ADMIN)]
-    )
-    admin_user_ids = [user.get('userId') for user in admin_users]
-    collection_names = firebaseService.list_collections()
-    return render_template('admin/firebase.html', **locals())
+    context = get_admin_context()
+    context['collection_names'] = firebaseService.list_collections()
+    return render_template('admin/firebase.html', **context)
 
 @admin_app.route('/line/operation', methods=['POST'])
 def line_operation():

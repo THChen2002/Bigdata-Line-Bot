@@ -1,5 +1,6 @@
 from config import get_config
 from map import LIFF, EquipmentStatus, DatabaseCollectionMap, Permission, EquipmentType, EquipmentName
+from utils.utils import replace_variable
 from flask import Blueprint, request, render_template, jsonify, abort
 from api.linebot_helper import LineBotHelper
 from linebot.v3.messaging import (
@@ -114,7 +115,7 @@ def submit_rent():
             DatabaseCollectionMap.LINE_FLEX,
             "equipment"
         ).get("approve")
-        line_flex_str = LineBotHelper.replace_variable(line_flex_template, data)
+        line_flex_str = replace_variable(line_flex_template, data)
         LineBotHelper.multicast_message(supervisors, [
             FlexMessage(alt_text='租借申請確認', contents=FlexContainer.from_json(line_flex_str))
         ])

@@ -1,5 +1,6 @@
 from config import get_config
 from map import DatabaseCollectionMap
+from utils.utils import replace_variable
 from linebot.v3.messaging import (
     ApiClient,
     ApiException,
@@ -111,57 +112,6 @@ class LineBotHelper:
                     messages=messages
                 )
             )
-            
-    @staticmethod
-    def get_current_time():
-        """Returns
-        datetime: 現在時間
-        """
-        return datetime.now(pytz.timezone('Asia/Taipei'))
-    
-    @staticmethod
-    def convert_timedelta_to_string(timedelta):
-        """Returns
-        str: 時間字串 (小時:分鐘:秒 e.g. 01:20:43)
-        """
-        hours = timedelta.days * 24 + timedelta.seconds // 3600
-        minutes = (timedelta.seconds % 3600) // 60
-        seconds = timedelta.seconds % 60
-        hours = hours if len(str(hours)) >= 2 else f'0{hours}'
-        minutes = minutes if len(str(minutes)) == 2 else f'0{minutes}'
-        seconds = seconds if len(str(seconds)) == 2 else f'0{seconds}'
-        return f'{hours}:{minutes}:{seconds}'
-    
-    @staticmethod
-    def generate_id(k: int=20):
-        """
-        生成ID
-        """
-        CHARS='0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'
-        return ''.join(random.choices(CHARS, k=k))
-        
-    @staticmethod
-    def replace_variable(text: str, variable_dict: dict, max_count: int = 0):
-        """Returns 取代變數後的文字 e.g. {{semester}} -> 代表semester是一個變數，取代成variable_dict中key為semester的值(max_count為相同變數取代次數)
-        str: 取代變數後的文字
-        """
-        replaced_count = {}
-
-        def replace(match):
-            key = match.group(1)
-            if max_count:
-                if key not in replaced_count:
-                    replaced_count[key] = 1
-                else:
-                    replaced_count[key] += 1
-                    if replaced_count[key] > max_count:
-                        return match.group(0)
-            return str(variable_dict.get(key, match.group(0)))
-
-        # 匹配 {{variable}} 的正規表達式
-        pattern = r'\{\{([a-zA-Z0-9_]*)\}\}'
-        replaced_text = re.sub(pattern, replace, text)
-        return replaced_text
     
     @staticmethod
     def create_action(action: dict):
@@ -384,7 +334,7 @@ class FlexMessageHelper:
             # 複製原始的 bubble
             new_bubble = line_flex_json['contents'][0].copy()
             # 在新 bubble 中進行變數替換
-            new_bubble = LineBotHelper.replace_variable(json.dumps(new_bubble), item)
+            new_bubble = replace_variable(json.dumps(new_bubble), item)
             
             # 將新 bubble 添加到 bubbles 中
             bubbles.append(json.loads(new_bubble))

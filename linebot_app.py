@@ -2,13 +2,17 @@ from config import get_config
 from features.base import feature_factory
 from map import Map, FeatureStatus, Permission, DatabaseCollectionMap
 from api.linebot_helper import LineBotHelper
+from utils.error_handler import handle_exception
 from flask import Blueprint, request, abort, current_app
 from linebot.v3.exceptions import InvalidSignatureError
 from linebot.v3.webhooks import (
-    MessageEvent, PostbackEvent, FollowEvent, UnfollowEvent, TextMessageContent
+    MessageEvent,
+    PostbackEvent,
+    FollowEvent,
+    UnfollowEvent,
+    TextMessageContent
 )
 from linebot.v3.messaging import ImageMessage, TextMessage
-from utils.error_handler import handle_exception
 
 linebot_app = Blueprint('linebot_app', __name__)
 
