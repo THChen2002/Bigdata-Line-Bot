@@ -12,22 +12,26 @@ admin_app = Blueprint('admin_app', __name__)
 config = get_config()
 firebaseService = config.firebaseService
 
-def get_admin_context():
-    """取得管理員頁面的共用上下文"""
-    liff_id = LIFF.ADMIN.value
-    admin_users = firebaseService.filter_data(
-        DatabaseCollectionMap.USER, [('permission', '==', Permission.ADMIN)]
-    )
-    admin_user_ids = [user.get('userId') for user in admin_users]
-    return {
-        'liff_id': liff_id,
-        'admin_users': admin_users,
-        'admin_user_ids': admin_user_ids
-    }
+@admin_app.route('/auth', methods=['POST'])
+def check_admin():
+    """驗證 admin 身份"""
+    try:
+        user_id = request.json.get('userId')
+        if not user_id:
+            return jsonify({'success': False, 'message': '缺少 userId'}), 400
+        
+        user = firebaseService.get_data(DatabaseCollectionMap.USER, user_id)
+        if user and user.get('permission') >= Permission.LEADER:
+            return jsonify({'success': True})
+        else:
+            return jsonify({'success': False, 'message': '權限不足'}), 403
+            
+    except Exception as e:
+        return handle_exception(e)
 
 @admin_app.route('/', methods=['GET'])
 def admin():
-    context = get_admin_context()
+    liff_id = LIFF.ADMIN.value
     # 取得各等級人數，保證每個 key 都有值
     level_counts = {i: 0 for i in range(4)}
     for level in [0, 1, 2, 3]:
@@ -35,27 +39,27 @@ def admin():
             DatabaseCollectionMap.USER,
             [('youtube.level', '==', level)]
         ))
-    return render_template('admin/index.html', **context)
+    return render_template('admin/index.html', **locals())
 
 @admin_app.route('/users', methods=['GET'])
 def users():
-    context = get_admin_context()
-    context['user'] = firebaseService.get_collection_data(DatabaseCollectionMap.USER)
+    liff_id = LIFF.ADMIN.value
+    users = firebaseService.get_collection_data(DatabaseCollectionMap.USER)
 
-    for user in context['user']:
+    for user in users:
         user.pop('statusMessage', None)
-    return render_template('admin/users.html', **context)
+    return render_template('admin/users.html', **locals())
 
 @admin_app.route('/line', methods=['GET'])
 def line():
-    context = get_admin_context()
-    return render_template('admin/line.html', **context)
+    liff_id = LIFF.ADMIN.value
+    return render_template('admin/line.html', **locals())
 
 @admin_app.route('/firebase', methods=['GET'])
 def firebase():
-    context = get_admin_context()
-    context['collection_names'] = firebaseService.list_collections()
-    return render_template('admin/firebase.html', **context)
+    liff_id = LIFF.ADMIN.value
+    collection_names = firebaseService.list_collections()
+    return render_template('admin/firebase.html', **locals())
 
 @admin_app.route('/line/operation', methods=['POST'])
 def line_operation():
