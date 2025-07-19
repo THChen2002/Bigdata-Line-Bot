@@ -1,0 +1,78 @@
+<!-- 通用確認 Modal -->
+<div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="confirmModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmModalLabel">
+                    <i class="bi bi-question-circle text-primary me-2"></i>
+                    確認操作
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="confirmModalBody">
+                <p class="mb-0">您確定要執行此操作嗎？</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle me-1"></i>取消
+                </button>
+                <button type="button" class="btn btn-primary" id="confirmModalConfirm">
+                    <i class="bi bi-check-circle me-1"></i>確認
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 通用提示 Modal -->
+<div class="modal fade" id="alertModal" tabindex="-1" aria-labelledby="alertModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="alertModalLabel">
+                    <i class="bi bi-info-circle text-info me-2"></i>
+                    提示
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="alertModalBody">
+                <p class="mb-0">操作完成</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">
+                    <i class="bi bi-check me-1"></i>確定
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 通用編輯 Modal -->
+<div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editModalLabel">
+                    <i class="bi bi-pencil-square me-2"></i>
+                    編輯資料
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editForm">
+                    <div id="editFormFields">
+                        <!-- 動態表單欄位將在這裡插入 -->
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle me-1"></i>取消
+                </button>
+                <button type="button" class="btn btn-primary" id="saveEditBtn">
+                    <i class="bi bi-check-circle me-1"></i>儲存變更
+                </button>
+            </div>
+        </div>
+    </div>
+</div> 

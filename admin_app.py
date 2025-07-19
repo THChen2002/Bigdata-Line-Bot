@@ -61,6 +61,135 @@ def firebase():
     collection_names = firebaseService.list_collections()
     return render_template('admin/firebase.html', **locals())
 
+@admin_app.route('/course', methods=['GET'])
+def course():
+    liff_id = LIFF.ADMIN.value
+    courses = firebaseService.get_collection_data(DatabaseCollectionMap.COURSE)
+    return render_template('admin/course.html', **locals())
+
+@admin_app.route('/course/add', methods=['POST'])
+def add_course():
+    try:
+        data = request.get_json()
+        # 驗證必要欄位
+        required_fields = ['course_cname', 'course_ename', 'category', 'type']
+        for field in required_fields:
+            if not data.get(field):
+                return jsonify({'success': False, 'message': f'缺少必要欄位: {field}'})
+        
+        # 生成新的課程ID
+        existing_courses = firebaseService.get_collection_data(DatabaseCollectionMap.COURSE)
+        max_id = max([c.get('course_id', 0) for c in existing_courses], default=0)
+        data['course_id'] = max_id + 1
+        
+        # 儲存到 Firebase
+        firebaseService.add_data(DatabaseCollectionMap.COURSE, str(data['course_id']), data)
+        return jsonify({'success': True, 'message': '課程新增成功'})
+        
+    except Exception as e:
+        return handle_exception(e)
+
+@admin_app.route('/course/update/<int:course_id>', methods=['PUT'])
+def update_course(course_id):
+    try:
+        data = request.get_json()
+        
+        # 查找課程
+        courses = firebaseService.get_collection_data(DatabaseCollectionMap.COURSE)
+        course = next((c for c in courses if c.get('course_id') == course_id), None)
+        
+        if not course:
+            return jsonify({'success': False, 'message': '找不到指定的課程'})
+        
+        # 更新課程
+        firebaseService.update_data(DatabaseCollectionMap.COURSE, course['_id'], data)
+        return jsonify({'success': True, 'message': '課程更新成功'})
+        
+    except Exception as e:
+        return handle_exception(e)
+
+@admin_app.route('/course/delete/<int:course_id>', methods=['DELETE'])
+def delete_course(course_id):
+    try:
+        # 查找課程
+        courses = firebaseService.get_collection_data(DatabaseCollectionMap.COURSE)
+        course = next((c for c in courses if c.get('course_id') == course_id), None)
+        
+        if not course:
+            return jsonify({'success': False, 'message': '找不到指定的課程'})
+        
+        # 刪除課程
+        firebaseService.delete_data(DatabaseCollectionMap.COURSE, course['_id'])
+        return jsonify({'success': True, 'message': '課程刪除成功'})
+        
+    except Exception as e:
+        return handle_exception(e)
+
+@admin_app.route('/course_open', methods=['GET'])
+def course_open():
+    liff_id = LIFF.ADMIN.value
+    course_open_records = firebaseService.get_collection_data(DatabaseCollectionMap.COURSE_OPEN)
+    courses = firebaseService.get_collection_data(DatabaseCollectionMap.COURSE)
+    return render_template('admin/course_open.html', **locals())
+
+@admin_app.route('/course_open/add', methods=['POST'])
+def add_course_open():
+    try:
+        data = request.get_json()
+        # 驗證必要欄位
+        required_fields = ['course_id', 'professor', 'classroom', 'year', 'semester', 'week', 'start_class', 'end_class', 'credit']
+        for field in required_fields:
+            if not data.get(field):
+                return jsonify({'success': False, 'message': f'缺少必要欄位: {field}'})
+        
+        # 生成新的開課ID
+        existing_records = firebaseService.get_collection_data(DatabaseCollectionMap.COURSE_OPEN)
+        max_id = max([c.get('id', 0) for c in existing_records], default=0)
+        data['id'] = max_id + 1
+        
+        # 儲存到 Firebase
+        firebaseService.add_data(DatabaseCollectionMap.COURSE_OPEN, str(data['id']), data)
+        return jsonify({'success': True, 'message': '開課記錄新增成功'})
+        
+    except Exception as e:
+        return handle_exception(e)
+
+@admin_app.route('/course_open/update/<int:record_id>', methods=['PUT'])
+def update_course_open(record_id):
+    try:
+        data = request.get_json()
+        
+        # 查找開課記錄
+        records = firebaseService.get_collection_data(DatabaseCollectionMap.COURSE_OPEN)
+        record = next((r for r in records if r.get('id') == record_id), None)
+        
+        if not record:
+            return jsonify({'success': False, 'message': '找不到指定的開課記錄'})
+        
+        # 更新開課記錄
+        firebaseService.update_data(DatabaseCollectionMap.COURSE_OPEN, record['_id'], data)
+        return jsonify({'success': True, 'message': '開課記錄更新成功'})
+        
+    except Exception as e:
+        return handle_exception(e)
+
+@admin_app.route('/course_open/delete/<int:record_id>', methods=['DELETE'])
+def delete_course_open(record_id):
+    try:
+        # 查找開課記錄
+        records = firebaseService.get_collection_data(DatabaseCollectionMap.COURSE_OPEN)
+        record = next((r for r in records if r.get('id') == record_id), None)
+        
+        if not record:
+            return jsonify({'success': False, 'message': '找不到指定的開課記錄'})
+        
+        # 刪除開課記錄
+        firebaseService.delete_data(DatabaseCollectionMap.COURSE_OPEN, record['_id'])
+        return jsonify({'success': True, 'message': '開課記錄刪除成功'})
+        
+    except Exception as e:
+        return handle_exception(e)
+
 @admin_app.route('/line/operation', methods=['POST'])
 def line_operation():
     try:

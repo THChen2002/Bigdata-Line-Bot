@@ -12,6 +12,8 @@
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/admin/base.css') }}">
+    <script src="{{ url_for('static', filename='js/components/modals.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/components/autocomplete.js') }}"></script>
     <script src="{{ url_for('static', filename='js/admin/base.js') }}"></script>
 
     {% block head %}{% endblock %}
@@ -36,13 +38,32 @@
                             <a class="nav-link" href="{{ url_for('admin_app.admin') }}" id="nav-dashboard"><i class="bi bi-graph-up-arrow me-1"></i>分析儀表板</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('admin_app.users') }}" id="nav-users"><i class="bi bi-people-fill me-1"></i>使用者管理</a>
-                        </li>
-                        <li class="nav-item">
                             <a class="nav-link" href="{{ url_for('admin_app.line') }}" id="nav-line"><i class="bi bi-chat-left-text-fill me-1"></i>LINE操作管理</a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" href="{{ url_for('admin_app.firebase') }}" id="nav-firebase"><i class="bi bi-database-fill me-1"></i>Firebase 資料管理</a>
+                        </li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="contentDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="bi bi-pencil-square me-1"></i>內容管理
+                            </a>
+                            <ul class="dropdown-menu" aria-labelledby="contentDropdown">
+                                <li>
+                                    <a class="dropdown-item" href="{{ url_for('admin_app.users') }}" id="nav-users">
+                                        <i class="bi bi-people-fill me-2"></i>使用者管理
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="{{ url_for('admin_app.course') }}" id="nav-course">
+                                        <i class="bi bi-book-fill me-2"></i>課程管理
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="{{ url_for('admin_app.course_open') }}" id="nav-course-open">
+                                        <i class="bi bi-calendar-event me-2"></i>開課管理
+                                    </a>
+                                </li>
+                            </ul>
                         </li>
                     </ul>
                     <ul class="navbar-nav ms-auto">
@@ -61,89 +82,19 @@
         </nav>
     
         <main class="container mt-4">
-        {% block content %}
-        {% endblock %}
+        {% block content %}{% endblock %}
         </main>
     </div>
 
-    <!-- 通用確認 Modal -->
-    <div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="confirmModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="confirmModalLabel">
-                        <i class="bi bi-question-circle text-primary me-2"></i>
-                        確認操作
-                    </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body" id="confirmModalBody">
-                    <p class="mb-0">您確定要執行此操作嗎？</p>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                        <i class="bi bi-x-circle me-1"></i>取消
-                    </button>
-                    <button type="button" class="btn btn-primary" id="confirmModalConfirm">
-                        <i class="bi bi-check-circle me-1"></i>確認
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
+    <!-- 引入通用 Modal 組件 -->
+    {% include 'components/modals.html' %}
 
-    <!-- 通用提示 Modal -->
-    <div class="modal fade" id="alertModal" tabindex="-1" aria-labelledby="alertModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="alertModalLabel">
-                        <i class="bi bi-info-circle text-info me-2"></i>
-                        提示
-                    </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body" id="alertModalBody">
-                    <p class="mb-0">操作完成</p>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">
-                        <i class="bi bi-check me-1"></i>確定
-                    </button>
-                </div>
-            </div>
-        </div>
+    <!-- LIFF Loading -->
+    <div id="liffLoading" class="d-flex justify-content-center align-items-center vh-100 flex-column">
+        <div class="spinner-border text-success" role="status"></div>
+        <p class="mt-3">正在驗證 LINE 登入，請稍候...</p>
     </div>
-
-    <!-- 通用編輯 Modal -->
-    <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="editModalLabel">
-                        <i class="bi bi-pencil-square me-2"></i>
-                        編輯資料
-                    </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="editForm">
-                        <div id="editFormFields">
-                            <!-- 動態表單欄位將在這裡插入 -->
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                        <i class="bi bi-x-circle me-1"></i>取消
-                    </button>
-                    <button type="button" class="btn btn-primary" id="saveEditBtn">
-                        <i class="bi bi-check-circle me-1"></i>儲存變更
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
+    
     <script>
         let liffId = '{{ liff_id }}';
     </script>
