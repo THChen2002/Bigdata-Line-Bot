@@ -2,25 +2,37 @@
     --primary-color: #4e73df;
     --secondary-color: #2e59d9;
     --accent-color: #f6c23e;
-    --dark-color: #9295a6;
+    --dark-color: #7d808f;
     --light-color: #f8f9fc;
 }
 
 .navbar-brand {
-    font-weight: 700;
-    color: var(--light-color) !important;
+    display: flex;
+    align-items: center;
+    font-weight: 600;
+    color: #ecf0f1;
+    margin: 0px 10px;
+}
+
+.navbar-brand:hover {
+    color: #cfd1d1;
+    transition: all 0.3s;
 }
 
 .nav-link {
-    color: var(--dark-color) !important;
+    color:  #cfd1d1;
     font-weight: 500;
     transition: all 0.3s;
 }
 
 .navbar {
-    padding-top: 1.5rem !important;
-    padding-bottom: 1.5rem !important;
-    transition: padding 0.3s ease-in-out;
+    background-color: #2c3e50;
+    width: 100%;
+    top: 0;
+    z-index: 1060;
+    min-height: 56px;
+    display: flex;
+    align-items: center;
 }
 
 .navbar.navbar-shrink {
@@ -29,7 +41,7 @@
 }
 
 .nav-link:hover {
-    color: var(--accent-color) !important;
+    color: #ffffff;
 }
 
 .btn-primary {
@@ -56,6 +68,7 @@ footer.site-footer {
     background-color: #2c3e50;
     color: white;
     padding: 1rem 0;
+    margin-top: auto;
 }
 
 footer.site-footer a {
@@ -88,4 +101,53 @@ body {
 
 .mainContent {
     flex: 1;
+}
+
+@media (max-width: 991.98px) {
+    .navbar .navbar-collapse {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background-color: #34495e;
+        border-top: 1px solid #2c3e50;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        max-height: none;
+        overflow: visible;
+        transition: all 0.3s ease;
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(-10px);
+        z-index: 1000;
+    }
+    
+    .navbar .navbar-collapse.show {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0);
+    }
+    
+    .navbar .navbar-nav {
+        padding: 0.5rem 0;
+    }
+    
+    .navbar .nav-item {
+        border-bottom: 1px solid #2c3e50;
+    }
+    
+    .navbar .nav-item:last-child {
+        border-bottom: none;
+    }
+    
+    .navbar .nav-link {
+        padding: 1rem 1.5rem;
+        display: block;
+        width: 100%;
+        color: #cfd1d1;
+    }
+    
+    .navbar .nav-link:hover {
+        background-color: #223042;
+        color: #fff;
+    }
 }

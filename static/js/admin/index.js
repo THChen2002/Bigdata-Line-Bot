@@ -76,5 +76,4 @@ function renderChart(levelCounts) {
 $(document).ready(function() {
     renderDashboardWithCounts(levelCounts);
     renderChart(levelCounts);
-    setActiveNav('nav-dashboard');
 });

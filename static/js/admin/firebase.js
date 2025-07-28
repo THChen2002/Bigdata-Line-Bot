@@ -160,12 +160,12 @@ function renderTable(data, collection) {
         $tbody.append('<tr><td colspan="3" class="text-center text-muted">查無資料</td></tr>');
         return;
     }
-    // 收集所有 key，排除 _id
+    // 收集所有 key，排除 doc_id
     let allKeys = new Set();
     data.forEach(row => {
         Object.keys(row.data).forEach(k => allKeys.add(k));
     });
-    allKeys.delete('_id');
+    allKeys.delete('doc_id');
     allKeys = Array.from(allKeys);
     // 產生表頭
     let headHtml = '<tr><th>Document ID</th>';
@@ -174,7 +174,7 @@ function renderTable(data, collection) {
     $thead.append(headHtml);
     // 產生每一列
     data.forEach(row => {
-        const docId = row._id;
+        const docId = row.doc_id;
         const doc = row.data;
         let rowHtml = `<tr><td class="align-middle">${docId}</td>`;
         allKeys.forEach(k => {
@@ -206,7 +206,7 @@ function renderTable(data, collection) {
             { id: 'docId', label: 'Document ID', type: 'text', required: true, readonly: true }
         ];
         Object.entries(data).forEach(([key, value]) => {
-            if (key === '_id') return; // 排除 _id
+            if (key === 'doc_id') return; // 排除 doc_id
             let type = 'text';
             if (typeof value === 'boolean') type = 'checkbox';
             else if (typeof value === 'number') type = 'number';

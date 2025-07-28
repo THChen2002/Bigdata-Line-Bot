@@ -6,8 +6,7 @@ from linebot.v3.messaging import (
     FlexContainer
 )
 from api.linebot_helper import LineBotHelper, QuickReplyHelper, FlexMessageHelper
-from map import Map, DatabaseCollectionMap
-import pandas as pd
+from map import DatabaseCollectionMap
 import json
 import math
 
@@ -44,56 +43,22 @@ class Course(Feature):
 
             student_id = user_detail['studentId']
             user_courses = self.firebaseService.filter_data(DatabaseCollectionMap.COURSE_STUDY, [('student_id', '==', student_id)])
-            # 取得課程資料
-            courses_df = pd.DataFrame(self.firebaseService.get_collection_data(DatabaseCollectionMap.COURSE))
-            courses_records_df = pd.DataFrame(self.firebaseService.get_collection_data(DatabaseCollectionMap.COURSE_OPEN))
-            user_courses_df = pd.DataFrame(user_courses)
-            # 確認使用者是否修過此微學程的課程
-            if not user_courses:
-                df_merged = pd.merge(courses_df, courses_records_df, on='course_id', how='left').astype(str)
-                df_merged['semester'] = '-'
-                df_merged['credit'] = 0
-                df_merged['status'] = '未修畢'
-                df_merged['color'] = '#000000'
-            else:
-                df_temp = pd.merge(user_courses_df, courses_records_df, left_on='record_id', right_on='id', how='inner', suffixes=(None, '_to_drop'))
-                df_temp = df_temp.drop(columns=['id_to_drop'])
-
-                # 取得學生同課程最新的修課紀錄
-                df_temp['id'] = df_temp['id'].astype(int)
-                df_temp = df_temp.loc[df_temp.groupby("course_id")['id'].idxmax()]
-
-                df_merged = pd.merge(courses_df, df_temp, on='course_id', how='left')
-                df_merged[['status', 'color']] = df_merged.apply(lambda row: pd.Series(self.__get_study_status(row)), axis=1)
-                df_merged['semester'] = df_merged.apply(lambda row: f"{int(row['year'])}-{int(row['semester'])}" if pd.notna(row['year']) and pd.notna(row['semester']) else '-', axis=1)
-                df_merged['pass'] = pd.to_numeric(df_merged['pass']).fillna(0).astype(int)
-                df_merged['credit'] = pd.to_numeric(df_merged['credit']).fillna(0).astype(int)
+            courses = self.firebaseService.get_collection_data(DatabaseCollectionMap.COURSE, ref_fields=['course'])
+            # 處理課程資料，合併修課記錄
+            course_records = self.__process_courses_with_study_records(courses, user_courses)
 
             # 取得line flex template以及替換修課資料變數
             line_flex_template = self.firebaseService.get_data(
                 DatabaseCollectionMap.LINE_FLEX,
                 "course"
             ).get('progress')
-            for course_record in df_merged.to_dict(orient='records'):
+            for course_record in course_records:
                 course_id = course_record['course_id']
                 variable_dict = { f"{key}{course_id}": course_record[key] for key in ['status', 'category', 'semester', 'color'] }
                 line_flex_template = replace_variable(line_flex_template, variable_dict)
 
             # 建立替換學分數據的字典
-            completed_required_credit = df_merged[(df_merged['type'] == '必修') & df_merged['pass']]['credit'].sum()
-            incompleted_required_credit = max(6 - completed_required_credit, 0)
-            completed_elective_credit = df_merged[(df_merged['type'] == '選修') & df_merged['pass']]['credit'].sum()
-            incompleted_elective_credit = max(4 - completed_elective_credit, 0)
-            standard = '已達到發證標準' if incompleted_required_credit <= 0 and incompleted_elective_credit <= 0 else '尚未符合發證標準'
-            color = '#00BB00' if standard == '已達到發證標準' else '#FF0000'
-            credits_summary = {
-                'completed_required_credit': completed_required_credit,
-                'incompleted_required_credit': incompleted_required_credit,
-                'completed_elective_credit': completed_elective_credit,
-                'incompleted_elective_credit': incompleted_elective_credit,
-                'standard': standard,
-                'color': color
-            }
+            credits_summary = self.__calculate_credits_summary(course_records)
 
             line_flex_str = replace_variable(line_flex_template, credits_summary)
             return LineBotHelper.reply_message(event, [FlexMessage(alt_text='修課進度', contents=FlexContainer.from_json(line_flex_str))])
@@ -104,8 +69,8 @@ class Course(Feature):
 
             # 如果有course_record_id，則回傳該課程的詳細資訊
             if course_record_id:
-                course_record = self.firebaseService.filter_data(DatabaseCollectionMap.COURSE_OPEN, [('id', '==', int(course_record_id))])[0]
-                course = self.firebaseService.filter_data(DatabaseCollectionMap.COURSE, [('course_id', '==', course_record['course_id'])])[0]
+                course_record = self.firebaseService.filter_data(DatabaseCollectionMap.COURSE_OPEN, [('id', '==', int(course_record_id))], ref_fields=['course'])[0]
+                course = self.firebaseService.filter_data(DatabaseCollectionMap.COURSE, [('course_id', '==', course_record['course'].get('course_id'))])[0]
                 course.update(course_record)
                 line_flex_template = self.firebaseService.get_data(
                     DatabaseCollectionMap.LINE_FLEX,
@@ -125,9 +90,9 @@ class Course(Feature):
                 # 拆解學年和學期
                 year = params.get('semester')[:3]
                 semester = params.get('semester')[3:]
-                course_records = self.firebaseService.filter_data(DatabaseCollectionMap.COURSE_OPEN, [('year', '==', year), ('semester', '==', semester)])
+                course_records = self.firebaseService.filter_data(DatabaseCollectionMap.COURSE_OPEN, [('year', '==', year), ('semester', '==', semester)], ref_fields=['course'])
                 for record in course_records:
-                    course = self.firebaseService.filter_data(DatabaseCollectionMap.COURSE, [('course_id', '==', record['course_id'])])[0]
+                    course = self.firebaseService.filter_data(DatabaseCollectionMap.COURSE, [('course_id', '==', int(record['course'].get('course_id')))])[0]
                     record.update(course)
                 if course_category != 'overview':
                     course_records = [record for record in course_records if record.get('category') == course_map.get(course_category)]
@@ -159,14 +124,78 @@ class Course(Feature):
                     quick_reply_data.get('actions')[i] = replace_variable(text, params)
                 return LineBotHelper.reply_message(event, [TextMessage(text=quick_reply_data.get('text'), quick_reply=QuickReplyHelper.create_quick_reply(quick_reply_data.get('actions')))])
     
-    def __get_study_status(self, row):
+    def __get_study_status(self, course_dict):
         """Returns
         Tuple: (修課狀態, 修課狀態顏色)
         """
-        if pd.notna(row['student_id']):
-            if row['pass'] == 1:
+        if course_dict.get('student_id'):
+            if course_dict.get('pass') == 1:
                 return '已修畢', '#00BB00'
             else:
                 return '未通過', '#FF0000'
         else:
             return '未修畢', '#000000'
+
+    def __process_courses_with_study_records(self, courses, user_courses):
+        """處理課程資料，合併修課記錄"""
+        # 設定預設值
+        default_values = {
+            'semester': '-',
+            'credit': 0,
+            'status': '未修畢',
+            'color': '#000000',
+            'pass': 0
+        }
+        
+        # 如果沒有修課記錄，直接設定預設值
+        if not user_courses:
+            for course in courses:
+                course.update(default_values)
+            return courses
+        
+        # 建立課程記錄的字典
+        course_records_dict = {}
+        for user_course in user_courses:
+            record_id = user_course['record_id']
+            course_record = self.firebaseService.get_data(DatabaseCollectionMap.COURSE_OPEN, str(record_id), ref_fields={'course': DatabaseCollectionMap.COURSE})
+            if course_record and course_record['course']:
+                course_id = course_record['course'].get('course_id')
+                # 如果同課程有多筆記錄，保留最新的（id 最大的）
+                if course_id not in course_records_dict or course_record['id'] > course_records_dict[course_id]['id']:
+                    course_records_dict[course_id] = course_record
+                    course_records_dict[course_id].update(user_course)
+        
+        # 合併課程資料和修課記錄
+        processed_courses = []
+        for course in courses:
+            course_id = course['course_id']
+            if course_id in course_records_dict:
+                # 有修課記錄
+                course_record = course_records_dict[course_id]
+                course.update(course_record)
+                # 設定修課狀態
+                status, color = self.__get_study_status(course)
+                course['status'] = status
+                course['color'] = color
+                course['semester'] = f"{int(course_record['year'])}-{int(course_record['semester'])}" if course_record.get('year') and course_record.get('semester') else '-'
+                course['pass'] = int(course_record.get('pass', 0))
+                course['credit'] = int(course_record.get('credit', 0))
+            else:
+                # 沒有修課記錄，使用預設值
+                course.update(default_values)
+            
+            processed_courses.append(course)
+        
+        return processed_courses
+    
+    def __calculate_credits_summary(self, course_records):
+        """計算學分摘要"""
+        completed_required_credit = sum(course['credit'] for course in course_records if course['type'] == '必修' and course['pass'] == 1)
+        incompleted_required_credit = max(6 - completed_required_credit, 0)
+        completed_elective_credit = sum(course['credit'] for course in course_records if course['type'] == '選修' and course['pass'] == 1)
+        incompleted_elective_credit = max(4 - completed_elective_credit, 0)
+        
+        standard = '已達到發證標準' if incompleted_required_credit <= 0 and incompleted_elective_credit <= 0 else '尚未符合發證標準'
+        color = '#00BB00' if standard == '已達到發證標準' else '#FF0000'
+        
+        return locals()

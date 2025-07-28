@@ -1,0 +1,82 @@
+{% extends 'app/base.html' %}
+
+{% block title %}{{ video.video_name }}{% endblock %}
+
+{% block head %}
+<link href="{{ url_for('static', filename='css/video.css') }}" rel="stylesheet" type="text/css" />
+{% endblock %}
+
+{% block content %}
+<section class="bg-light py-3">
+    <div class="container">
+        <div class="col-lg-auto mb-lg-0">
+            <ol class="breadcrumb m-2">
+                <li class="breadcrumb-item">
+                    <a href="{{ url_for('index') }}" class="text-decoration-none">
+                        <i class="fas fa-home me-1"></i>首頁
+                    </a>
+                </li>
+                <li class="breadcrumb-item">
+                    <a href="{{ url_for('videos') }}" class="text-decoration-none">
+                        <i class="fas fa-book me-1"></i>所有課程
+                    </a>
+                </li>
+                <li class="breadcrumb-item active" aria-current="page">
+                    {{ video.video_name }}
+                </li>
+            </ol>
+        </div>
+    </div>
+</section>
+
+<section class="py-5">
+    <div class="container">
+        <div class="card border-0 shadow-sm bg-primary bg-gradient bg-opacity-10">
+            <div class="card-body p-5">
+                <div class="row align-items-center">
+                    <div class="col-lg-8">
+                        <h1 class="display-6 fw-bold mb-3 text-dark">{{ video.video_name }}</h1>
+                    </div>
+                    <div class="col-lg-4 text-center">
+                        <div class="bg-primary bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 120px; height: 120px;">
+                            <i class="bi bi-play-circle-fill text-primary" style="font-size: 3rem;"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="pb-5">
+    <div class="container">
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-primary bg-gradient text-white">
+                <h4 class="mb-0">
+                    <i class="bi bi-info-circle-fill me-2"></i>課程簡介
+                </h4>
+            </div>
+            <div class="card-body">
+                <div class="fs-5 lh-base">{{ video.description|safe }}</div>
+            </div>
+        </div>
+
+        {% if video.video_url %}
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-success bg-gradient text-white">
+                <h4 class="mb-0">
+                    <i class="bi bi-camera-video-fill me-2"></i>課程影片
+                </h4>
+            </div>
+            <div class="card-body p-0">
+                <div class="ratio ratio-16x9">
+                    <iframe src="https://www.youtube.com/embed/{{ video.video_url.split('=')[1] }}"
+                        frameborder="0" allowfullscreen class="rounded-bottom"></iframe>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+{% endblock %}

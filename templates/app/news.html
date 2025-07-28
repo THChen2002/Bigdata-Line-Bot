@@ -1,0 +1,56 @@
+{% extends 'app/base.html' %}
+{% block title %}公告{% endblock %}
+{% block content %}
+
+<section class="bg-light py-3">
+    <div class="container">
+        <div class="col-lg-auto mb-lg-0">
+            <ol class="breadcrumb m-2">
+                <li class="breadcrumb-item">
+                    <a href="{{ url_for('index') }}" class="text-decoration-none">
+                        <i class="fas fa-home me-1"></i>首頁
+                    </a>
+                </li>
+                <li class="breadcrumb-item active" aria-current="page">
+                    {{ news_item.title }}
+                </li>
+            </ol>
+        </div>
+    </div>
+</section>
+
+<!-- 單則新聞內容 -->
+<section class="py-5 bg-white">
+    <div class="container">
+        <h2 class="fw-bold mb-4">【{{ news_item.category }}】{{ news_item.title }}</h2>
+        
+        <!-- 新聞標題區塊 -->
+        <div class="news-header mb-4">
+            <div class="tags-container">
+                <!-- 小標籤區 -->
+                <div class="d-flex align-items-center gap-3">
+                    <span class="badge bg-secondary text-white">
+                        <i class="bi bi-calendar-event me-1"></i>{{ news_item.created_at.strftime('%Y-%m-%d %H:%M:%S') }}
+                    </span>
+                    <span class="badge bg-info text-white">
+                        <i class="bi bi-eye me-1"></i>{{ news_item.views }}
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 新聞內容 -->
+        <div class="mb-5">
+            <p class="fs-5">{{ news_item.content|safe }}</p>
+
+            {% if news_item.link %}
+            <div class="mt-4">
+                <a href="{{ news_item.link }}" class="btn btn-outline-primary" target="_blank">
+                    <i class="bi bi-link-45deg me-1"></i>相關連結
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</section>
+{% endblock %}

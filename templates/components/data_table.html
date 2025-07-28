@@ -1,93 +1,72 @@
 {% macro data_table(
-    title=none,
-    icon="bi-table",
-    search_placeholder="搜尋...",
+    search_placeholder="搜尋病人編號...",
     columns=[],
-    table_id="data-table",
-    search_id="search-input",
+    table_id="dataTable",
+    search_id="searchInput",
+    show_filter_panel=True,
     filter_panel_id="filterPanel",
-    table_body_id="table-body",
-    show_add_button=true,
+    table_body_id="tableBody",
+    show_add_button=True,
     add_button_text="新增",
-    add_button_icon="bi-plus-circle"
+    show_export_button=False,
+    export_button_text="匯出 Excel",
+    export_button_url=None,
+    show_view_button=True,
+    show_edit_button=True,
+    show_delete_button=True
 ) %}
-
-{% if title %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 class="mb-0"><i class="bi {{ icon }} me-2"></i>{{ title }}</h2>
-    {% if show_add_button %}
-    <button type="button" class="btn btn-primary" id="add-btn">
-        <i class="bi {{ add_button_icon }} me-1"></i>{{ add_button_text }}
-    </button>
-    {% endif %}
-</div>
-{% elif show_add_button %}
-<div class="d-flex justify-content-end mb-4">
-    <button type="button" class="btn btn-primary" id="add-btn">
-        <i class="bi {{ add_button_icon }} me-1"></i>{{ add_button_text }}
-    </button>
-</div>
-{% endif %}
 
 <div class="card">
     <div class="card-body">
         <!-- 搜尋功能 -->
         <div class="row g-3 mb-4">
-            <div class="col-md-6">
-                <div class="input-group">
+            <div class="col-md-6 d-flex align-items-center">
+                <div class="input-group me-3" style="max-width: 350px;">
                     <span class="input-group-text"><i class="bi bi-search"></i></span>
                     <input type="text" id="{{ search_id }}" class="form-control" placeholder="{{ search_placeholder }}">
                 </div>
-            </div>
-            <div class="col-md-6 text-md-end">
-                <div class="btn-group">
-                    <button type="button" class="btn btn-outline-secondary" id="filterButton">
-                        <i class="bi bi-funnel me-1"></i>篩選
-                    </button>
-                    <button type="button" class="btn btn-outline-secondary" id="resetButton">
+                {% if show_filter_panel %}
+                <div class="btn-group me-2">
+                    <button type="button" class="btn btn-outline-secondary" id="resetBtn">
                         <i class="bi bi-arrow-repeat me-1"></i>重置
                     </button>
                 </div>
+                {% endif %}
+            </div>
+
+            <div class="col-md-6 text-md-end">
+                {% if show_add_button %}
+                <button type="button" class="btn btn-outline-primary" id="addBtn">
+                    <i class="bi bi-plus-circle me-1"></i>{{ add_button_text }}
+                </button>
+                {% endif %}
+                {% if show_export_button %}
+                <button type="button" class="btn btn-outline-success ms-2" id="exportBtn"{% if export_button_url %} data-download-url="{{ export_button_url }}"{% endif %}>
+                    <i class="bi bi-download me-1"></i>{{ export_button_text }}
+                </button>
+                {% endif %}
             </div>
         </div>
 
-        <!-- 篩選面板 -->
-        <div class="filter-panel" id="{{ filter_panel_id }}" style="display: none;">
-            <div class="row">
-                <div class="col-md-12 mb-3">
-                    <h6 class="mb-2"><i class="bi bi-funnel me-1"></i>篩選條件</h6>
-                    <div id="filter-content">
-                        <!-- 動態篩選內容將在這裡插入 -->
-                    </div>
-                </div>
-                <div class="col-md-12">
-                    <button type="button" class="btn btn-primary btn-sm" id="applyFilterBtn">套用篩選</button>
-                    <button type="button" class="btn btn-outline-secondary btn-sm" id="closeFilterBtn">關閉</button>
-                </div>
+        <!-- 篩選選項 - 直接顯示在搜尋欄下方 -->
+        {% if show_filter_panel %}
+        <div class="row g-3 mb-4" id="{{ filter_panel_id }}">
+            <div id="filterContent">
+                <!-- 動態篩選內容將在這裡插入 -->
             </div>
         </div>
-
-        <!-- 已套用的篩選條件 -->
-        <div id="activeFilters" class="mb-3" style="display: none;">
-            <strong>篩選條件: </strong>
-            <div class="d-inline-flex flex-wrap" id="filterBadges">
-            </div>
-        </div>
+        {% endif %}
 
         <!-- 數據表格 -->
         <div class="table-responsive">
-            <table class="table table-hover align-middle" id="{{ table_id }}">
+            <table class="table table-hover align-middle text-center"
+                   id="{{ table_id }}"
+                   data-show-view-button="{{ show_view_button|lower }}"
+                   data-show-edit-button="{{ show_edit_button|lower }}"
+                   data-show-delete-button="{{ show_delete_button|lower }}">
                 <thead>
                     <tr>
-                        {% for column in columns %}
-                        <th data-sort="{{ column.key }}" {% if column.sortable != false %}class="sortable"{% endif %}>
-                            {{ column.label }}
-                            {% if column.sortable != false %}
-                            <span class="sort-icon"><i class="bi bi-sort-up"></i></span>
-                            {% endif %}
-                        </th>
-                        {% endfor %}
-                        <th>動作</th>
+                        <!-- 動態產生標題列 -->
                     </tr>
                 </thead>
                 <tbody id="{{ table_body_id }}">
@@ -99,7 +78,7 @@
         <!-- 分頁 -->
         <div class="d-flex justify-content-between align-items-center mt-4">
             <div class="pagination-info">
-                顯示 <span id="start-index">1</span> 到 <span id="end-index">10</span> 筆，共 <span id="total-count">0</span> 筆資料
+                <!-- 分頁資訊將在這裡插入 -->
             </div>
             <nav>
                 <ul class="pagination mb-0" id="pagination">
@@ -110,4 +89,4 @@
     </div>
 </div>
 
-{% endmacro %} 
+{% endmacro %}

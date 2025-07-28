@@ -1,6 +1,10 @@
 {% extends "liff/base.html" %}
 {% block title %}個人資料{% endblock %}
 {% block head %}
+<script>
+    let user_info = JSON.parse('{{ user_info|tojson|safe }}')
+    let user_yt = JSON.parse('{{ user_yt|tojson|safe }}')
+</script>
 <script src="{{ url_for('static', filename='js/liff/userinfo.js') }}"></script>
 {% endblock %}
 
@@ -64,7 +68,7 @@
 
         <h4 class="border-bottom pb-2">三、學術或工作機構</h4>
         <!-- 學生資料區塊 -->
-        <div id="ntueStudentFields" style="display: none;">
+        <div id="ntueStudentFields" class="d-none">
             <div class="row g-3 mb-4">
                 <div class="col-md-6">
                     <label for="studentId" class="form-label">學號<span style="color: red;">*</span></label>
@@ -114,7 +118,7 @@
         </div>
 
         <!-- 外部學生資料區塊 -->
-        <div id="externalStudentFields" style="display: none;">
+        <div id="externalStudentFields" class="d-none">
             <div class="row g-3 mb-4">
                 <div class="col-md-6">
                     <label for="schoolName" class="form-label">學校名稱<span style="color: red;">*</span></label>
@@ -141,7 +145,7 @@
         </div>
 
         <!-- 社會人士資料區塊 -->
-        <div id="socialIndividualFields" style="display: none;">
+        <div id="socialIndividualFields" class="d-none">
             <div class="row g-3 mb-4">
                 <div class="col-md-6">
                     <label for="organization" class="form-label">所屬單位名稱<span style="color: red;">*</span></label>
@@ -174,7 +178,7 @@
         <div class="row mt-4">
             <div class="col-12 d-flex justify-content-end">
                 <button class="btn btn-success" id="submitBtn">送出</button>
-                <button class="btn btn-success" id="loadBtn" type="button" disabled style="display: none;">
+                <button class="btn btn-success" id="loadBtn" type="button" disabled class="d-none">
                     <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
                     處理中...
                 </button>

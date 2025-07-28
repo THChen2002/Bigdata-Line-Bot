@@ -1,6 +1,4 @@
 $(document).ready(function() {
-    setActiveNav('nav-line');
-    
     // 為各操作按鈕加確認功能
     addConfirmTo('#update-users-btn', {
         title: '更新使用者資訊',

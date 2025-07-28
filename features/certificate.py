@@ -22,5 +22,5 @@ class Certificate(Feature):
     def execute_postback(self, event, **kwargs):
         params = kwargs.get('params')
         if params.get('type') == 'process':
-            image_url = 'https://bigdatalinebot.blob.core.windows.net/linebot/Micro-Credit-Course-Apply-Process.png'
+            image_url = 'https://bigdatalinebot.blob.core.windows.net/linebot/Certificate/Micro-Credit-Course-Apply-Process.png'
             return LineBotHelper.reply_message(event, [ImageMessage(original_content_url=image_url, preview_image_url=image_url)])

@@ -4,37 +4,19 @@
 {% block title %}後台管理系統 - 課程管理{% endblock %}
 
 {% block head %}
-    <script>
-        let coursesData = JSON.parse('{{ courses|tojson|safe }}');
-    </script>
-    <script src="{{ url_for('static', filename='js/components/data_table.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/admin/course.js') }}"></script>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin/users.css') }}">
+<script>
+    let coursesData = JSON.parse('{{ courses|tojson|safe }}');
+</script>
+<script src="{{ url_for('static', filename='js/admin/course.js') }}"></script>
 {% endblock %}
 
 {% block content %}
-<div id="mainContent" class="d-none">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="mb-0"><i class="bi bi-book-fill me-2"></i>課程管理</h2>
-    </div>
-    
-    {{ data_table(
-        search_placeholder="搜尋課程ID、名稱、類別...",
-        columns=[
-            {'key': 'course_id', 'label': '課程ID'},
-            {'key': 'course_cname', 'label': '課程名稱(中文)'},
-            {'key': 'course_ename', 'label': '課程名稱(英文)'},
-            {'key': 'category', 'label': '類別'},
-            {'key': 'type', 'label': '類型'},
-            {'key': 'cover_url', 'label': '封面圖片'}
-        ],
-        table_id="course-table",
-        search_id="course-search",
-        filter_panel_id="courseFilterPanel",
-        table_body_id="course-table-body",
-        show_add_button=true,
-        add_button_text="新增課程",
-        add_button_icon="bi-plus-circle"
-    ) }}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="mb-0"><i class="bi bi-book-fill me-2"></i>課程管理</h2>
 </div>
+
+{{ data_table(
+    search_placeholder="搜尋課程ID、名稱、類別...",
+    add_button_text="新增課程"
+) }}
 {% endblock %}
