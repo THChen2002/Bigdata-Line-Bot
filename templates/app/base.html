@@ -9,7 +9,7 @@
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css"
         integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+jjXkk+Q2h455rYXK/7HAuoJl+0I4" crossorigin="anonymous">
         </script>
@@ -34,7 +34,7 @@
 <body>
 
     <!-- 導覽列 -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm">
+    <nav class="navbar navbar-expand-lg navbar-dark shadow-sm">
         <div class="container-fluid">
             <a class="navbar-brand" href="{{ url_for('index') }}">
                 Code Me Maybe 碼上學
@@ -46,16 +46,13 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav">
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('course_list') }}" id="nav-users">課程資訊</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('index') }}#news-section" id="nav-news">最新消息</a>
+                        <a class="nav-link" href="{{ url_for('videos') }}" id="nav-users">課程資訊</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('history') }}" id="nav-history">歷史沿革</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="mailto:bigdatantue@gmail.com" id="nav-line">聯絡我們</a>
+                        <!-- <a class="nav-link" href="mailto:bigdatantue@gmail.com" id="nav-line">聯絡我們</a> -->
                     </li>
                 </ul>
             </div>
@@ -71,7 +68,7 @@
     <footer class="site-footer">
         <div class="container">
             <div class="row gy-4">
-                <div class="col-lg-4">
+                <div class="col-lg-5">
                     <h4 class="footer-title">Code Me Maybe 碼上學</h4>
                     <p>準備好「碼上學」了嗎？按下訂閱，跟我們一起踏上這段有趣的旅程吧！</p>
                     <div class="d-flex gap-3 mt-3">
@@ -79,28 +76,19 @@
                         <a href="https://www.instagram.com/code.me.maybe" class="text-white"><i class="bi bi-instagram"></i></a>
                         <a href="https://lin.ee/z0YvfJ2" class="text-white"><i class="bi bi-line"></i></a>
                         <a href="https://www.youtube.com/@CodeMeMaybe" class="text-white"><i class="bi bi-youtube"></i></a>
+                        <a href="https://www.threads.net/@code.me.maybe" class="text-white"><i class="bi bi-threads"></i></a>
                     </div>
                 </div>
-                <div class="col-lg-2 col-md-4">
+                <div class="col-lg-3 col-md-6">
                     <h5 class="footer-title">快速連結</h5>
                     <ul class="list-unstyled">
                         <li class="mb-2"><a href="{{ url_for('index') }}">首頁</a></li>
-                        <li class="mb-2"><a href="{{ url_for('index') }}#news-section">最新消息</a></li>
-                        <li class="mb-2"><a href="{{ url_for('course_list') }}">課程資訊</a></li>
+                        <li class="mb-2"><a href="{{ url_for('videos') }}">課程資訊</a></li>
                         <li class="mb-2"><a href="{{ url_for('history') }}">歷史沿革</a></li>
                         <li class="mb-2"><a href="mailto:bigdatantue@gmail.com">聯絡我們</a></li>
                     </ul>
                 </div>
-                <div class="col-lg-2 col-md-4">
-                    <h5 class="footer-title">課程分類</h5>
-                    <ul class="list-unstyled">
-                        <li class="mb-2"><a href="#">程式安裝教學</a></li>
-                        <li class="mb-2"><a href="#">LINEBot系列</a></li>
-                        <li class="mb-2"><a href="#">Python初學</a></li>
-                        <li class="mb-2"><a href="#">教育版註冊</a></li>
-                    </ul>
-                </div>
-                <div class="col-lg-4 col-md-4">
+                <div class="col-lg-4 col-md-6">
                     <h5 class="footer-title">聯絡資訊</h5>
                     <ul class="list-unstyled">
                         <li class="mb-2"><i class="bi bi-geo-alt me-2"></i> 台北市大安區和平東路二段134號</li>

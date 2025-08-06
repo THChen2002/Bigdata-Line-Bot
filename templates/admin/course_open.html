@@ -4,40 +4,20 @@
 {% block title %}後台管理系統 - 開課管理{% endblock %}
 
 {% block head %}
-    <script>
-        let courseOpenData = JSON.parse('{{ course_open_records|tojson|safe }}');
-        let coursesData = JSON.parse('{{ courses|tojson|safe }}');
-    </script>
-    <script src="{{ url_for('static', filename='js/components/data_table.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/admin/course_open.js') }}"></script>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin/users.css') }}">
+<script>
+    let courseOpenData = JSON.parse('{{ course_open_records|tojson|safe }}');
+    let coursesData = JSON.parse('{{ courses|tojson|safe }}');
+</script>
+<script src="{{ url_for('static', filename='js/admin/course_open.js') }}"></script>
 {% endblock %}
 
 {% block content %}
-<div id="mainContent" class="d-none">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="mb-0"><i class="bi bi-calendar-event me-2"></i>開課管理</h2>
-    </div>
-    
-    {{ data_table(
-        search_placeholder="搜尋課程ID、教授、教室...",
-        columns=[
-            {'key': 'id', 'label': '開課ID'},
-            {'key': 'course_id', 'label': '課程ID'},
-            {'key': 'course_name', 'label': '課程名稱'},
-            {'key': 'professor', 'label': '教授'},
-            {'key': 'classroom', 'label': '教室'},
-            {'key': 'time_info', 'label': '上課時間'},
-            {'key': 'semester_info', 'label': '學期資訊'},
-            {'key': 'credit', 'label': '學分'}
-        ],
-        table_id="course-open-table",
-        search_id="course-open-search",
-        filter_panel_id="courseOpenFilterPanel",
-        table_body_id="course-open-table-body",
-        show_add_button=true,
-        add_button_text="新增開課",
-        add_button_icon="bi-plus-circle"
-    ) }}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="mb-0"><i class="bi bi-calendar-event me-2"></i>開課管理</h2>
 </div>
+
+{{ data_table(
+    search_placeholder="搜尋課程ID、教授、教室...",
+    add_button_text="新增開課"
+) }}
 {% endblock %} 

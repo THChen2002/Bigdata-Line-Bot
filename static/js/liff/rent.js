@@ -73,8 +73,8 @@ $(document).ready(function () {
             $(this).addClass('was-validated');
             return;
         }
-        $('#submitBtn').hide();
-        $('#loadBtn').show();
+        $('#submitBtn').addClass('d-none');
+        $('#loadBtn').removeClass('d-none');
 
         // 收集表單資料
         const data = {

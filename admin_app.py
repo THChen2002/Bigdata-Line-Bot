@@ -6,6 +6,8 @@ from api.oauth_helper import OauthHelper
 from api.liff_helper import LiffHelper
 from urllib.parse import urlparse
 from utils.error_handler import handle_exception
+from datetime import datetime
+import pytz
 
 admin_app = Blueprint('admin_app', __name__)
 
@@ -41,15 +43,6 @@ def admin():
         ))
     return render_template('admin/index.html', **locals())
 
-@admin_app.route('/users', methods=['GET'])
-def users():
-    liff_id = LIFF.ADMIN.value
-    users = firebaseService.get_collection_data(DatabaseCollectionMap.USER)
-
-    for user in users:
-        user.pop('statusMessage', None)
-    return render_template('admin/users.html', **locals())
-
 @admin_app.route('/line', methods=['GET'])
 def line():
     liff_id = LIFF.ADMIN.value
@@ -61,10 +54,107 @@ def firebase():
     collection_names = firebaseService.list_collections()
     return render_template('admin/firebase.html', **locals())
 
+@admin_app.route('/users', methods=['GET'])
+def users():
+    liff_id = LIFF.ADMIN.value
+    users = firebaseService.get_collection_data(DatabaseCollectionMap.USER)
+
+    for user in users:
+        user.pop('statusMessage', None)
+    return render_template('admin/user.html', **locals())
+
+@admin_app.route('/user/update/<string:user_id>', methods=['PUT'])
+def update_user(user_id):
+    try:
+        data = request.get_json()
+        data = data['youtube']
+        data['youtube'] = {
+            'channel': data.pop('channel'),
+            'level': int(data.pop('level')),
+            # 前端傳來的要加上 +8 時區
+            'joinAt': datetime.fromisoformat(data.pop('joinAt')).astimezone(pytz.timezone('Asia/Taipei')) if data.get('joinAt') else None
+        }
+        firebaseService.update_data(DatabaseCollectionMap.USER, user_id, data)
+        return jsonify({'success': True, 'message': '使用者資訊已更新'})
+    except Exception as e:
+        return handle_exception(e, admin_notification=True, return_json=True)
+
+@admin_app.route('/news', methods=['GET'])
+def news():
+    liff_id = LIFF.ADMIN.value
+    news_items = firebaseService.get_collection_data(DatabaseCollectionMap.NEWS, order_by=('news_id', 'desc'))
+    for news in news_items:
+        if 'content' in news and news['content']:
+            news['content'] = news['content'].replace('\n', '\\n')
+    return render_template('admin/news.html', **locals())
+
+@admin_app.route('/news/add', methods=['POST'])
+def add_news():
+    try:
+        data = request.get_json()
+        # 驗證必要欄位
+        required_fields = ['title', 'content']
+        for field in required_fields:
+            if not data.get(field):
+                return jsonify({'success': False, 'message': f'缺少必要欄位: {field}'})
+        # 生成新的公告ID
+        existing_news = firebaseService.get_collection_data(DatabaseCollectionMap.NEWS)
+        max_id = max([n.get('news_id', 0) for n in existing_news], default=0)
+        data['news_id'] = max_id + 1
+        data['views'] = 0
+        data['created_at'] = datetime.now(pytz.timezone('Asia/Taipei'))
+        data['updated_at'] = datetime.now(pytz.timezone('Asia/Taipei'))
+        # 儲存到 Firebase
+        firebaseService.add_data(DatabaseCollectionMap.NEWS, str(data['news_id']), data)
+        
+        # 回傳新增的公告資料
+        return jsonify({
+            'success': True, 
+            'message': '公告新增成功',
+            'data': data
+        })
+    except Exception as e:
+        return handle_exception(e)
+
+@admin_app.route('/news/update/<int:news_id>', methods=['PUT'])
+def update_news(news_id):
+    try:
+        data = request.get_json()
+        
+        data['news_id'] = news_id
+       
+        data['updated_at'] = datetime.now(pytz.timezone('Asia/Taipei'))
+        
+        # 更新公告
+        firebaseService.update_data(DatabaseCollectionMap.NEWS, str(news_id), data)
+        
+        # 回傳更新的公告資料
+        return jsonify({
+            'success': True, 
+            'message': '公告更新成功',
+            'data': firebaseService.get_data(DatabaseCollectionMap.NEWS, str(news_id))
+        })
+    except Exception as e:
+        return handle_exception(e)
+
+@admin_app.route('/news/delete/<int:news_id>', methods=['DELETE'])
+def delete_news(news_id):
+    try:
+        firebaseService.delete_data(DatabaseCollectionMap.NEWS, str(news_id))
+        
+        # 回傳刪除的公告ID
+        return jsonify({
+            'success': True, 
+            'message': '公告刪除成功',
+            'data': {'news_id': news_id}
+        })
+    except Exception as e:
+        return handle_exception(e)
+
 @admin_app.route('/course', methods=['GET'])
 def course():
     liff_id = LIFF.ADMIN.value
-    courses = firebaseService.get_collection_data(DatabaseCollectionMap.COURSE)
+    courses = firebaseService.get_collection_data(DatabaseCollectionMap.COURSE, order_by=('course_id', 'asc'))
     return render_template('admin/course.html', **locals())
 
 @admin_app.route('/course/add', methods=['POST'])
@@ -84,7 +174,13 @@ def add_course():
         
         # 儲存到 Firebase
         firebaseService.add_data(DatabaseCollectionMap.COURSE, str(data['course_id']), data)
-        return jsonify({'success': True, 'message': '課程新增成功'})
+        
+        # 回傳新增的課程資料
+        return jsonify({
+            'success': True, 
+            'message': '課程新增成功',
+            'data': data
+        })
         
     except Exception as e:
         return handle_exception(e)
@@ -94,16 +190,17 @@ def update_course(course_id):
     try:
         data = request.get_json()
         
-        # 查找課程
-        courses = firebaseService.get_collection_data(DatabaseCollectionMap.COURSE)
-        course = next((c for c in courses if c.get('course_id') == course_id), None)
-        
-        if not course:
-            return jsonify({'success': False, 'message': '找不到指定的課程'})
+        data['course_id'] = course_id
         
         # 更新課程
-        firebaseService.update_data(DatabaseCollectionMap.COURSE, course['_id'], data)
-        return jsonify({'success': True, 'message': '課程更新成功'})
+        firebaseService.update_data(DatabaseCollectionMap.COURSE, str(course_id), data)
+        
+        # 回傳更新的課程資料
+        return jsonify({
+            'success': True, 
+            'message': '課程更新成功',
+            'data': data
+        })
         
     except Exception as e:
         return handle_exception(e)
@@ -111,16 +208,14 @@ def update_course(course_id):
 @admin_app.route('/course/delete/<int:course_id>', methods=['DELETE'])
 def delete_course(course_id):
     try:
-        # 查找課程
-        courses = firebaseService.get_collection_data(DatabaseCollectionMap.COURSE)
-        course = next((c for c in courses if c.get('course_id') == course_id), None)
+        firebaseService.delete_data(DatabaseCollectionMap.COURSE, str(course_id))
         
-        if not course:
-            return jsonify({'success': False, 'message': '找不到指定的課程'})
-        
-        # 刪除課程
-        firebaseService.delete_data(DatabaseCollectionMap.COURSE, course['_id'])
-        return jsonify({'success': True, 'message': '課程刪除成功'})
+        # 回傳刪除的課程ID
+        return jsonify({
+            'success': True, 
+            'message': '課程刪除成功',
+            'data': {'course_id': course_id}
+        })
         
     except Exception as e:
         return handle_exception(e)
@@ -128,7 +223,7 @@ def delete_course(course_id):
 @admin_app.route('/course_open', methods=['GET'])
 def course_open():
     liff_id = LIFF.ADMIN.value
-    course_open_records = firebaseService.get_collection_data(DatabaseCollectionMap.COURSE_OPEN)
+    course_open_records = firebaseService.get_collection_data(DatabaseCollectionMap.COURSE_OPEN, order_by=('id', 'desc'), ref_fields=['course'])
     courses = firebaseService.get_collection_data(DatabaseCollectionMap.COURSE)
     return render_template('admin/course_open.html', **locals())
 
@@ -147,9 +242,26 @@ def add_course_open():
         max_id = max([c.get('id', 0) for c in existing_records], default=0)
         data['id'] = max_id + 1
         
-        # 儲存到 Firebase
-        firebaseService.add_data(DatabaseCollectionMap.COURSE_OPEN, str(data['id']), data)
-        return jsonify({'success': True, 'message': '開課記錄新增成功'})
+        data['course'] = data.pop('course_id')
+        # 設定 reference 欄位
+        ref_fields = {
+            'course': DatabaseCollectionMap.COURSE
+        }
+        
+        # 儲存到 Firebase，處理 reference
+        firebaseService.add_data(
+            DatabaseCollectionMap.COURSE_OPEN, 
+            str(data['id']), 
+            data, 
+            ref_fields
+        )
+        
+        # 回傳新增的開課記錄
+        return jsonify({
+            'success': True, 
+            'message': '開課記錄新增成功',
+            'data': firebaseService.get_data(DatabaseCollectionMap.COURSE_OPEN, str(data['id']), ref_fields)
+        })
         
     except Exception as e:
         return handle_exception(e)
@@ -159,16 +271,28 @@ def update_course_open(record_id):
     try:
         data = request.get_json()
         
-        # 查找開課記錄
-        records = firebaseService.get_collection_data(DatabaseCollectionMap.COURSE_OPEN)
-        record = next((r for r in records if r.get('id') == record_id), None)
+        data['id'] = record_id
+        data['course'] = data.pop('course_id')
         
-        if not record:
-            return jsonify({'success': False, 'message': '找不到指定的開課記錄'})
+        # 設定 reference 欄位
+        ref_fields = {
+            'course': DatabaseCollectionMap.COURSE
+        }
         
-        # 更新開課記錄
-        firebaseService.update_data(DatabaseCollectionMap.COURSE_OPEN, record['_id'], data)
-        return jsonify({'success': True, 'message': '開課記錄更新成功'})
+        # 更新開課記錄，處理 reference
+        firebaseService.update_data(
+            DatabaseCollectionMap.COURSE_OPEN, 
+            str(record_id), 
+            data, 
+            ref_fields
+        )
+        
+        # 回傳更新的開課記錄
+        return jsonify({
+            'success': True, 
+            'message': '開課記錄更新成功',
+            'data': firebaseService.get_data(DatabaseCollectionMap.COURSE_OPEN, str(record_id), ref_fields)
+        })
         
     except Exception as e:
         return handle_exception(e)
@@ -176,17 +300,88 @@ def update_course_open(record_id):
 @admin_app.route('/course_open/delete/<int:record_id>', methods=['DELETE'])
 def delete_course_open(record_id):
     try:
-        # 查找開課記錄
-        records = firebaseService.get_collection_data(DatabaseCollectionMap.COURSE_OPEN)
-        record = next((r for r in records if r.get('id') == record_id), None)
+        firebaseService.delete_data(DatabaseCollectionMap.COURSE_OPEN, str(record_id))
         
-        if not record:
-            return jsonify({'success': False, 'message': '找不到指定的開課記錄'})
+        # 回傳刪除的記錄ID
+        return jsonify({
+            'success': True, 
+            'message': '開課記錄刪除成功',
+            'data': {'id': record_id}
+        })
         
-        # 刪除開課記錄
-        firebaseService.delete_data(DatabaseCollectionMap.COURSE_OPEN, record['_id'])
-        return jsonify({'success': True, 'message': '開課記錄刪除成功'})
+    except Exception as e:
+        return handle_exception(e)
+
+@admin_app.route('/video', methods=['GET'])
+def video():
+    liff_id = LIFF.ADMIN.value
+    videos = firebaseService.get_collection_data(DatabaseCollectionMap.VIDEO, order_by=('video_id', 'desc'))
+    
+    # 處理換行符問題，確保 JSON 序列化不會出錯
+    for video in videos:
+        if 'description' in video and video['description']:
+            # 將換行符轉換為 HTML 換行標籤，避免 JSON 解析錯誤
+            video['description'] = video['description'].replace('\n', '\\n')
+    
+    return render_template('admin/video.html', **locals())
+
+@admin_app.route('/video/add', methods=['POST'])
+def add_video():
+    try:
+        data = request.get_json()
+        required_fields = ['video_name', 'video_url', 'category', 'description']
+        for field in required_fields:
+            if not data.get(field):
+                return jsonify({'success': False, 'message': f'缺少必要欄位: {field}'})
         
+        # 生成新的影片ID
+        existing_videos = firebaseService.get_collection_data(DatabaseCollectionMap.VIDEO)
+        max_id = max([v.get('video_id', 0) for v in existing_videos], default=0)
+        data['video_id'] = max_id + 1
+        
+        # 儲存到 Firebase
+        firebaseService.add_data(DatabaseCollectionMap.VIDEO, str(data['video_id']), data)
+        
+        # 回傳新增的影片資料
+        return jsonify({
+            'success': True, 
+            'message': '影片新增成功',
+            'data': data
+        })
+        
+    except Exception as e:
+        return handle_exception(e)
+
+@admin_app.route('/video/update/<int:video_id>', methods=['PUT'])
+def update_video(video_id):
+    try:
+        data = request.get_json()
+
+        data['video_id'] = video_id
+        
+        # 更新影片
+        firebaseService.update_data(DatabaseCollectionMap.VIDEO, str(video_id), data)
+        
+        # 回傳更新的影片資料
+        return jsonify({
+            'success': True, 
+            'message': '影片更新成功',
+            'data': data
+        })
+    except Exception as e:
+        return handle_exception(e)
+
+@admin_app.route('/video/delete/<int:video_id>', methods=['DELETE'])
+def delete_video(video_id):
+    try:
+        firebaseService.delete_data(DatabaseCollectionMap.VIDEO, str(video_id))
+        
+        # 回傳刪除的影片ID
+        return jsonify({
+            'success': True, 
+            'message': '影片刪除成功',
+            'data': {'video_id': video_id}
+        })
     except Exception as e:
         return handle_exception(e)
 
@@ -197,14 +392,12 @@ def line_operation():
         operation_type = data.get('type')
         
         # 驗證操作類型
-        valid_operations = ['update_user', 'update_users', 'update_richmenu', 'update_yt_richmenu', 'delete_all_richmenu', 'update_liff_urls']
+        valid_operations = ['update_users', 'update_richmenu', 'update_yt_richmenu', 'delete_all_richmenu', 'update_liff_urls']
         if operation_type not in valid_operations:
             return jsonify({'success': False, 'message': '無效的操作類型'})
         
         # 根據操作類型執行相應的邏輯
-        if operation_type == 'update_user':
-            result = handle_update_user(data)
-        elif operation_type == 'update_users':
+        if operation_type == 'update_users':
             result = handle_update_users()
         elif operation_type == 'delete_all_richmenu':
             result = handle_delete_all_richmenu()
@@ -268,7 +461,7 @@ def api_firebase_query():
         # 將 conditions 轉為 Firestore 查詢格式
         conds = [(c['field'], c['op'], c['value']) for c in conditions if c.get('field')]
         docs = firebaseService.filter_data(collection, conds, order_by=order_by, limit=limit)
-        result = [{'_id': doc.get('_id'), 'data': doc} for doc in docs]
+        result = [{'doc_id': doc.get('doc_id'), 'data': doc} for doc in docs]
         return jsonify({'success': True, 'data': result})
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)})
@@ -313,20 +506,9 @@ def api_firebase_fields():
     if not docs:
         return jsonify({'success': True, 'fields': []})
     field_set = set(docs[0].keys())
-    field_set.discard('_id')
+    field_set.discard('doc_id')
 
     return jsonify({'success': True, 'fields': list(field_set)})
-
-def handle_update_user(data):
-    try:
-        user_id = data.get('userId')
-        youtube_data = data.get('youtube', {})
-        if not user_id:
-            return {'success': False, 'message': '缺少 userId'}
-        firebaseService.update_data(DatabaseCollectionMap.USER, user_id, {'youtube': youtube_data})
-        return {'success': True, 'message': '使用者資訊已更新'}
-    except Exception as e:
-        return handle_exception(e, admin_notification=True, return_json=True)
 
 def handle_update_users():
     """處理更新使用者資訊的操作"""

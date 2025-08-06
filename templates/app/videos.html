@@ -1,0 +1,93 @@
+{% extends 'app/base.html' %}
+
+{% block title %}課程資訊{% endblock %}
+
+{% block head %}
+<script src="{{ url_for('static', filename='js/app/videos.js') }}"></script>
+{% endblock %}
+
+{% block content %}
+<section class="bg-light py-3">
+    <div class="container">
+        <div>
+            <div class="col-lg-auto mb-lg-0">
+                <ol class="breadcrumb m-2">
+                    <li class="breadcrumb-item">
+                        <a href="{{ url_for('index') }}" class="text-decoration-none">
+                            <i class="fas fa-home me-1"></i>首頁
+                        </a>
+                    </li>
+                    <li class="breadcrumb-item active" aria-current="page">
+                        <i class="fas fa-book me-1"></i>所有課程
+                    </li>
+                </ol>
+            </div>
+            <div class="row pt-2">
+                <div class="col-4">
+                    <input type="text" class="form-control" id="searchInput" placeholder="請輸入課程關鍵字…">
+                </div>
+                <div class="col-4">
+                    <select class="form-select" id="seriesFilter">
+                        <option value="all" selected>所有系列</option>
+                        <option value="LINE Bot進階實戰應用">LINE Bot進階實戰應用</option>
+                        <option value="AI LINE Bot練功坊">AI LINE Bot練功坊</option>
+                        <option value="n8n系列">n8n系列</option>
+                        <option value="Python初學小教室">Python初學小教室</option>
+                        <option value="程式安裝x指令大補帖">程式安裝x指令大補帖</option>
+                        <option value="教育版註冊教學">教育版註冊教學</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Main Content -->
+<section class="py-5">
+    <div class="container">
+        <div class="row g-4">
+            {% for video in videos %}
+            <div class="col-lg-4 col-md-6 video-card" data-category="{{ video.category }}">
+                <div class="card h-100 shadow-sm border-0">
+                    <div class="position-relative">
+                        {% if video.cover_url %}
+                        <img src="{{ video.cover_url }}" class="card-img-top" alt="{{ video.video_name }}" onerror="this.onerror=null; this.src='https://bigdatalinebot.blob.core.windows.net/linebot/Website/banner.png';">
+                        {% else %}
+                        <img src="https://bigdatalinebot.blob.core.windows.net/linebot/Website/banner.png" class="card-img-top" alt="banner">
+                        {% endif %}
+                    </div>
+                    <div class="card-body d-flex flex-column">
+                        <div>
+                            <h5 class="card-title fw-bold mb-2">{{ video.video_name }}</h5>
+                            <p class="text-muted small mb-2">
+                                <i class="fas fa-tag me-1"></i>{{ video.category }}
+                            </p>
+                        </div>
+                        <div class="mt-auto">
+                            <a href="{{ url_for('video', video_id=video.video_id) }}" class="btn btn-primary w-100">
+                                <i class="fas fa-eye me-2"></i>查看詳細內容
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="row mt-5">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div id="pagination-info" class="text-muted">
+                        <!-- 顯示信息由JavaScript動態生成 -->
+                    </div>
+                    <nav aria-label="課程分頁">
+                        <ul class="pagination mb-0">
+                            <!-- 分頁按鈕由JavaScript動態生成 -->
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

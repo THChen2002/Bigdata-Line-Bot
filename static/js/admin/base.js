@@ -6,6 +6,9 @@ function initializeLiff(liffId) {
         } else {
             // 獲取使用者資訊
             liff.getProfile().then(profile => {
+                // 顯示用戶頭像和名稱
+                displayAdminProfile(profile);
+                
                 // 發送請求到後端驗證 admin 身份
                 $.ajax({
                     url: '/admin/auth',
@@ -32,16 +35,18 @@ function initializeLiff(liffId) {
     });
 }
 
-// 設定 active nav 項目
-function setActiveNav(navId) {
-    $('.nav-link').removeClass('active');
-    $('.dropdown-item').removeClass('active');
-    $(`#${navId}`).addClass('active');
-    
-    // 如果是下拉選單項目，也要高亮父級下拉選單
-    if (navId === 'nav-course' || navId === 'nav-course-open') {
-        $('#contentDropdown').addClass('active');
-    }
+// 顯示用戶資訊
+function displayAdminProfile(profile) {
+    // 如果沒有頭像或頭像URL無效，使用LINE預設頭像
+    const avatarUrl = profile.pictureUrl || 'https://static.line-scdn.net/line_web_login/1980c203b61/dist/image/default@2x.png';
+    $('#adminUserAvatar').attr('src', avatarUrl);
+    $('#adminUserProfile').show();
+}
+
+// 管理員登出
+function adminLogout() {
+    liff.logout();
+    window.location.href = '/';
 }
 
 $(document).ready(() => {
