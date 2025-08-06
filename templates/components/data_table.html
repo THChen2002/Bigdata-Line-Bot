@@ -1,0 +1,92 @@
+{% macro data_table(
+    search_placeholder="搜尋病人編號...",
+    columns=[],
+    table_id="dataTable",
+    search_id="searchInput",
+    show_filter_panel=True,
+    filter_panel_id="filterPanel",
+    table_body_id="tableBody",
+    show_add_button=True,
+    add_button_text="新增",
+    show_export_button=False,
+    export_button_text="匯出 Excel",
+    export_button_url=None,
+    show_view_button=True,
+    show_edit_button=True,
+    show_delete_button=True
+) %}
+
+<div class="card">
+    <div class="card-body">
+        <!-- 搜尋功能 -->
+        <div class="row g-3 mb-4">
+            <div class="col-md-6 d-flex align-items-center">
+                <div class="input-group me-3" style="max-width: 350px;">
+                    <span class="input-group-text"><i class="bi bi-search"></i></span>
+                    <input type="text" id="{{ search_id }}" class="form-control" placeholder="{{ search_placeholder }}">
+                </div>
+                {% if show_filter_panel %}
+                <div class="btn-group me-2">
+                    <button type="button" class="btn btn-outline-secondary" id="resetBtn">
+                        <i class="bi bi-arrow-repeat me-1"></i>重置
+                    </button>
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="col-md-6 text-md-end">
+                {% if show_add_button %}
+                <button type="button" class="btn btn-outline-primary" id="addBtn">
+                    <i class="bi bi-plus-circle me-1"></i>{{ add_button_text }}
+                </button>
+                {% endif %}
+                {% if show_export_button %}
+                <button type="button" class="btn btn-outline-success ms-2" id="exportBtn"{% if export_button_url %} data-download-url="{{ export_button_url }}"{% endif %}>
+                    <i class="bi bi-download me-1"></i>{{ export_button_text }}
+                </button>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- 篩選選項 - 直接顯示在搜尋欄下方 -->
+        {% if show_filter_panel %}
+        <div class="row g-3 mb-4" id="{{ filter_panel_id }}">
+            <div id="filterContent">
+                <!-- 動態篩選內容將在這裡插入 -->
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- 數據表格 -->
+        <div class="table-responsive">
+            <table class="table table-hover align-middle text-center"
+                   id="{{ table_id }}"
+                   data-show-view-button="{{ show_view_button|lower }}"
+                   data-show-edit-button="{{ show_edit_button|lower }}"
+                   data-show-delete-button="{{ show_delete_button|lower }}">
+                <thead>
+                    <tr>
+                        <!-- 動態產生標題列 -->
+                    </tr>
+                </thead>
+                <tbody id="{{ table_body_id }}">
+                    <!-- 動態數據將在這裡插入 -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- 分頁 -->
+        <div class="d-flex justify-content-between align-items-center mt-4">
+            <div class="pagination-info">
+                <!-- 分頁資訊將在這裡插入 -->
+            </div>
+            <nav>
+                <ul class="pagination mb-0" id="pagination">
+                    <!-- 分頁按鈕將在這裡插入 -->
+                </ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+{% endmacro %}

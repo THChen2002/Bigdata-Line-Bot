@@ -106,3 +106,5 @@ class DatabaseCollectionMap:
     QUIZ_RECORD = "quiz_records"
     QUIZ_LOG = "quiz_logs"
     COMPETITION = "competitions"
+    VIDEO = "videos"
+    NEWS = "news"

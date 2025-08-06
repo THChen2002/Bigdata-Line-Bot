@@ -1,0 +1,21 @@
+{% extends 'admin/base.html' %}
+
+{% block title %}後台管理系統 - YouTube影片管理{% endblock %}
+
+{% block head %}
+<script>
+    let videosData = JSON.parse('{{ videos|tojson|safe }}');
+</script>
+<script src="{{ url_for('static', filename='js/admin/video.js') }}"></script>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="mb-0"><i class="bi bi-youtube me-2"></i>YouTube影片管理</h2>
+</div>
+
+{{ data_table(
+    search_placeholder="搜尋影片ID、名稱、類別...",
+    add_button_text="新增影片"
+) }}
+{% endblock %}

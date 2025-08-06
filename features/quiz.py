@@ -1,11 +1,12 @@
 from .base import Feature, register_feature
+from map import DatabaseCollectionMap, LIFF
+from utils.utils import *
+from api.linebot_helper import LineBotHelper, FlexMessageHelper
 from linebot.v3.messaging import (
     TextMessage,
     FlexMessage,
     FlexContainer
 )
-from map import DatabaseCollectionMap, LIFF
-from api.linebot_helper import LineBotHelper, FlexMessageHelper
 import pandas as pd
 import json
 import random
@@ -115,11 +116,11 @@ class Quiz(Feature):
                     "quiz"
                 ).get('competition_rule')
                 userinfo_url = f'https://liff.line.me/{LIFF.TALL.value}/userinfo?userId={user_id}'
-                line_flex_json = LineBotHelper.replace_variable(line_flex_str, {'category': category, 'competition_id': competition_id, 'userinfo_url': userinfo_url})
+                line_flex_json = replace_variable(line_flex_str, {'category': category, 'competition_id': competition_id, 'userinfo_url': userinfo_url})
                 return LineBotHelper.reply_message(event, [FlexMessage(alt_text='測驗說明', contents=FlexContainer.from_json(line_flex_json))])
             if category:
-                quiz_id = LineBotHelper.generate_id()
-                current_time = LineBotHelper.get_current_time()
+                quiz_id = generate_id()
+                current_time = get_current_time()
                 if mode == 'competition':
                     # 確認使用者是否有在設定中填寫資料
                     user_detail = self.firebaseService.get_data(DatabaseCollectionMap.USER, user_id).get('details')
@@ -208,11 +209,11 @@ class Quiz(Feature):
             "quiz"
         )
         line_flex_str = line_flex_quiz.get('question_with_image') if question.get('image_url') else line_flex_quiz.get('question')
-        line_flex_str = LineBotHelper.replace_variable(line_flex_str, question)
+        line_flex_str = replace_variable(line_flex_str, question)
         # 生成星星
         difficulty = int(question.get('difficulty'))
-        line_flex_str = LineBotHelper.replace_variable(line_flex_str, {"star_url": self.gold_star_url}, difficulty)
-        line_flex_str = LineBotHelper.replace_variable(line_flex_str, {"star_url": self.gray_star_url}, 5 - difficulty)
+        line_flex_str = replace_variable(line_flex_str, {"star_url": self.gold_star_url}, difficulty)
+        line_flex_str = replace_variable(line_flex_str, {"star_url": self.gray_star_url}, 5 - difficulty)
         return line_flex_str
     
     def __generate_answer_line_flex(self, question: dict, is_correct: bool):
@@ -233,7 +234,7 @@ class Quiz(Feature):
         question.update({
             'correct_rate': correct_rate
         })
-        line_flex_str = LineBotHelper.replace_variable(line_flex_str, question)
+        line_flex_str = replace_variable(line_flex_str, question)
         return line_flex_str
 
     def __create_answer_record(self, mode: str, user_id: str, quiz_id: str, question: dict, answer: str):
@@ -262,10 +263,10 @@ class Quiz(Feature):
         # 紀錄該題作答(quiz_records)
         question_id = question.get('id')
         taiwan_tz = pytz.timezone('Asia/Taipei')
-        event_time = LineBotHelper.get_current_time().astimezone(taiwan_tz)
+        event_time = get_current_time().astimezone(taiwan_tz)
         self.firebaseService.add_data(
             DatabaseCollectionMap.QUIZ_RECORD,
-            LineBotHelper.generate_id(),
+            generate_id(),
             {
                 'mode': mode,
                 'quiz_id': quiz_id,
@@ -303,7 +304,7 @@ class Quiz(Feature):
             DatabaseCollectionMap.LINE_FLEX,
             "quiz"
         ).get('general_result')
-        line_flex_str = LineBotHelper.replace_variable(line_flex_str, params)
+        line_flex_str = replace_variable(line_flex_str, params)
         return line_flex_str
     
     def __generate_competition_quiz_result(self, user_id: str, params: dict):
@@ -317,7 +318,7 @@ class Quiz(Feature):
         start_time = params.get('start_time')
         end_time = quiz_records[-1].get('timestamp')
         spend_time = end_time - start_time
-        spend_time_str = LineBotHelper.convert_timedelta_to_string(spend_time)
+        spend_time_str = convert_timedelta_to_string(spend_time)
         
         # 紀錄測驗結果資料
         self.firebaseService.update_data(
@@ -340,7 +341,7 @@ class Quiz(Feature):
         user_info = self.firebaseService.get_data(DatabaseCollectionMap.USER, user_id)
         user_picture_url = user_info.get('pictureUrl')
         params.update({'hours': hours, 'minutes': minutes, 'seconds': seconds, 'user_picture_url': user_picture_url})
-        line_flex_str = LineBotHelper.replace_variable(line_flex_str, params)
+        line_flex_str = replace_variable(line_flex_str, params)
         return line_flex_str
     
     def __check_competition_open_time(self, competition_id: str):
@@ -350,7 +351,7 @@ class Quiz(Feature):
         quiz_flex_data = self.firebaseService.filter_data(DatabaseCollectionMap.QUIZ, [('enable', '==', True), ('competition_id', '==', competition_id)])[0]
         start_time = quiz_flex_data["start_time"]
         end_time = quiz_flex_data["end_time"]
-        current_time = LineBotHelper.get_current_time()
+        current_time = get_current_time()
         return current_time >= start_time and current_time <= end_time
     
     def __generate_rank_line_flex(self, competition_id: str, user_id: str):
@@ -430,7 +431,7 @@ class Quiz(Feature):
             DatabaseCollectionMap.LINE_FLEX,
             "quiz"
         ).get('rank')
-        line_flex_str = LineBotHelper.replace_variable(line_flex_str, data)
+        line_flex_str = replace_variable(line_flex_str, data)
 
         # 生成排行榜前5名
         for i in range(5):
@@ -441,7 +442,7 @@ class Quiz(Feature):
                 competitions[i]['displayName'] = generate_mask(user_info.get('displayName'))
                 competitions[i]['pictureUrl'] = user_info.get('pictureUrl')
                 competitions[i]['time_spent'] = format_time_spent_str(competitions[i].get('time_spent'))
-                line_flex_str = LineBotHelper.replace_variable(line_flex_str, competitions[i], 1)
+                line_flex_str = replace_variable(line_flex_str, competitions[i], 1)
             else:
                 data = {
                     'rank': '-',
@@ -450,7 +451,7 @@ class Quiz(Feature):
                     'correct_rate': '-',
                     'time_spent': '-'
                 }
-                line_flex_str = LineBotHelper.replace_variable(line_flex_str, data)
+                line_flex_str = replace_variable(line_flex_str, data)
                 break
         return line_flex_str
 
@@ -462,7 +463,7 @@ class Quiz(Feature):
             DatabaseCollectionMap.LINE_FLEX,
             "quiz"
         ).get('history_select')
-        line_flex_str = LineBotHelper.replace_variable(line_flex_str, {"category" : category})
+        line_flex_str = replace_variable(line_flex_str, {"category" : category})
         return LineBotHelper.reply_message(event, [FlexMessage(alt_text='選擇查看範圍', contents=FlexContainer.from_json(line_flex_str))])
 
     def __generate_global_history_question(self, event, category):
@@ -568,10 +569,10 @@ class Quiz(Feature):
             "quiz"
         ).get('history_question_with_image' if quiz_question.get('image_url') else 'history_question')
         quiz_question['width'] = 100 - quiz_question['correct_rate']
-        line_flex_str = LineBotHelper.replace_variable(line_flex_str, quiz_question)
+        line_flex_str = replace_variable(line_flex_str, quiz_question)
 
         # 生成星星
         difficulty = int(quiz_question['difficulty'])
-        line_flex_str = LineBotHelper.replace_variable(line_flex_str, {"star_url": self.gold_star_url}, difficulty)
-        line_flex_str = LineBotHelper.replace_variable(line_flex_str, {"star_url": self.gray_star_url}, 5 - difficulty)
+        line_flex_str = replace_variable(line_flex_str, {"star_url": self.gold_star_url}, difficulty)
+        line_flex_str = replace_variable(line_flex_str, {"star_url": self.gray_star_url}, 5 - difficulty)
         return LineBotHelper.reply_message(event, [FlexMessage(alt_text='完整測驗題目', contents=FlexContainer.from_json(line_flex_str))])

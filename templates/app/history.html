@@ -1,0 +1,43 @@
+{% extends 'app/base.html' %}
+
+{% block title %}歷史沿革{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/app/history.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="container d-flex justify-content-center align-items-center" style="min-height: 80vh;">
+    <div class="history-card w-100" style="max-width: 900px;">
+        <div class="history-title"><i class="bi bi-hearts"></i> 團隊起源</div>
+        <p class="text-muted" style="line-height: 1.8; text-align: justify; padding: 0 1rem;">
+            我們的故事，始於2023年。那一年，在國北教大蔡教授的帶領下，我們接下了教育部「教育大數據微學程」計畫的重任。這不僅是一項計畫，更是一顆希望將數據素養深植於教育領域的種子。隨著計畫於2025年1月圓滿告一段落，一個問題浮現在我們心中：這份對數據教育的熱情，是否也該就此劃下句點？答案是否定的。於是，原計畫的核心團隊成員決定凝聚起來，延續這份初衷，正式成立了「<strong>Code Me Maybe 碼上學</strong>」。從一個計畫的終點，走向一個教育品牌的起點，我們期待在探索數據的道路上，與您並肩同行。
+        </p>
+
+        <h5 class="mt-5 mb-4 fw-bold text-center">歷史沿革</h5>
+        
+        <div class="timeline">
+            <div class="history-section purple">
+                <b>2025年至今</b><br>
+                「<strong>Code Me Maybe 碼上學</strong>」正式成立！我們承襲計畫的專業經驗，開始錄製全新的教學影片，我們的目標是打造一個充滿活力的學習社群，無論你是完全的程式麻瓜，還是想精進技能的開發者，都歡迎加入我們！
+            </div>
+            <div class="history-section red">
+                <b>2025年1月</b><br>
+                國立臺北教育大學教育大數據微學程計畫圓滿結束。
+            </div>
+            <div class="history-section green">
+                <b>2023 - 2024年</b><br>
+                計畫期間，我們完成了數支 LINEBot 線上教學影片錄製、多場次實體與線上工作坊、縣市政府教育大數據專案分析，以及數屆微學程課程，培育人才。
+            </div>
+            <div class="history-section green">
+                <b>2023 - 2024年</b><br>
+                計畫期間，我們完成了數支 Python 線上教學影片錄製、縣市政府教育大數據專案分析，學期間開放各系修習教育大數據微學程，培育人才。
+            </div>
+            <div class="history-section blue">
+                <b>2023年</b><br>
+                在國北教大蔡教授的帶領下，教育部「教育大數據微學程」計畫正式啟動，致力於校內推廣大數據。
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

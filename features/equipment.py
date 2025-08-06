@@ -1,11 +1,12 @@
 from .base import Feature, register_feature
+from utils.utils import *
+from map import DatabaseCollectionMap, EquipmentStatus, LIFF
+from api.linebot_helper import LineBotHelper, FlexMessageHelper
 from linebot.v3.messaging import (
     TextMessage,
     FlexMessage,
     FlexContainer
 )
-from map import DatabaseCollectionMap, EquipmentStatus, LIFF
-from api.linebot_helper import LineBotHelper, FlexMessageHelper
 import json
 
 @register_feature('equipment')
@@ -19,7 +20,7 @@ class Equipment(Feature):
             "equipment"
         ).get("select")
         rent_url = f'https://liff.line.me/{LIFF.TALL.value}/rent?userId={event.source.user_id}'
-        line_flex_str = LineBotHelper.replace_variable(line_flex_str, {'rent_url': rent_url})
+        line_flex_str = replace_variable(line_flex_str, {'rent_url': rent_url})
         return LineBotHelper.reply_message(event, [FlexMessage(alt_text='設備租借', contents=FlexContainer.from_json(line_flex_str))])
 
     def execute_postback(self, event, **kwargs):
@@ -78,7 +79,7 @@ class Equipment(Feature):
         ]
         equipment_status_data = self.firebaseService.filter_data(DatabaseCollectionMap.EQUIPMENT, conditions)
         # 隨機產生id
-        borrower_id = LineBotHelper.generate_id()
+        borrower_id = generate_id()
         params.update({
             'borrowerId': borrower_id,
             'borrower': params.pop('userId'),

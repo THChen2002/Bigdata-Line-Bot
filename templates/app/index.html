@@ -1,0 +1,77 @@
+{% extends 'app/base.html' %}
+
+{% block title %}首頁{% endblock %}
+
+{% block head %}
+<link href="{{ url_for('static', filename='css/app/index.css') }}" rel="stylesheet" type="text/css" />
+<script src="{{ url_for('static', filename='js/app/index.js') }}"></script>
+{% endblock %}
+
+{% block content %}
+<!-- 宣傳hero -->
+<section id="heroSection">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6 text-center text-lg-start">
+                <h1 class="display-4 fw-bold mb-3">Code Me Maybe 碼上學</h1>
+                <p class="lead mb-4">Code me maybe? 陪你『碼上學』，輕鬆掌握程式新技能。</p>
+                <a href="https://line.me/ti/g2/JIZNLOXW3xlYPIdfZBVNLgsSKcf5EQZR2B3wLA?utm_source=invitation&utm_medium=link_copy&utm_campaign=default" class="cm-btn-primary btn btn-primary btn-lg">加入討論社群</a>
+                <a href="{{ url_for('videos') }}" class="cm-btn-outline-primary btn btn-outline-primary btn-lg">查看最新課程</a>
+                
+            </div>
+            <div class="col-lg-5 offset-lg-1 mb-4 mb-lg-0 text-center text-lg-start">
+                <img src="https://bigdatalinebot.blob.core.windows.net/linebot/Website/hero.png" alt="Code Me Maybe 碼上學" class="img-fluid" />
+            </div>
+        </div>
+    </div>
+</section>
+<!-- 最新消息 -->
+<section class="bg-white" id="newsSection">
+    <div class="container pb-4">
+        <h2 class="section-title">最新消息</h2>
+        <div class="mb-3 navCategoryBar">
+            <nav>
+                <ul class="newsCategoryList nav nav-tabs mb-0">
+                    <li class="nav-item">
+                        <button class="nav-link news-category-btn" data-category="全部">全部</button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link news-category-btn" data-category="公告">公告</button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link news-category-btn" data-category="活動">活動</button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link news-category-btn" data-category="資訊分享">資訊分享</button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link news-category-btn" data-category="其他">其他</button>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+        <table class="table table-hover align-middle" id="newsTable">
+            <tbody>
+            {% if news_items and news_items|length > 0 %}
+                {% for news in news_items %}
+                <tr data-category="{{ news.category }}">
+                    <td class="news-date">{{ news.created_at.strftime('%Y-%m-%d') if news.created_at else '' }}</td>
+                    <td class="news-category">
+                        <span class="category-badge badge-{{ news.category }}">{{ news.category }}</span>
+                    </td>
+                    <td class="news-title">{{ news.title }}</td>
+                    <td class="news-action text-end">
+                        <a href="{{ url_for('news', news_id=news.news_id) }}" class="btn btn-outline-primary btn-sm">閱讀更多</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            {% else %}
+                <tr class="no-news-row">
+                    <td colspan="4" class="text-center text-muted">目前沒有最新消息</td>
+                </tr>
+            {% endif %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}
